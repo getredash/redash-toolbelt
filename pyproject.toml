@@ -5,6 +5,10 @@ description = "Redash API client and tools to manage your instance."
 authors = ["Redash Maintainers"]
 license = "BSD-2-Clause"
 
+packages = [
+    { include = "redash-toolbelt" }
+]
+
 [tool.poetry.dependencies]
 python = "^3.6"
 requests = "^2.22.0"
