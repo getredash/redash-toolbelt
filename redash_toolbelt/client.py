@@ -5,7 +5,8 @@ class Redash(object):
     def __init__(self, redash_url, api_key):
         self.redash_url = redash_url
         self.session = requests.Session()
-        self.session.headers.update({"Authorization": "Key {}".format(api_key)})
+        self.session.headers.update(
+            {"Authorization": "Key {}".format(api_key)})
 
     def test_credentials(self):
         try:
@@ -16,15 +17,13 @@ class Redash(object):
 
     def queries(self, page=1, page_size=25):
         """GET api/queries"""
-        return self._get(
-            "api/queries", params=dict(page=page, page_size=page_size)
-        ).json()
+        return self._get("api/queries",
+                         params=dict(page=page, page_size=page_size)).json()
 
     def dashboards(self, page=1, page_size=25):
         """GET api/dashboards"""
-        return self._get(
-            "api/dashboards", params=dict(page=page, page_size=page_size)
-        ).json()
+        return self._get("api/dashboards",
+                         params=dict(page=page, page_size=page_size)).json()
 
     def dashboard(self, slug):
         """GET api/dashboards/{slug}"""
@@ -34,9 +33,8 @@ class Redash(object):
         return self._post("api/dashboards", json={"name": name}).json()
 
     def update_dashboard(self, dashboard_id, properties):
-        return self._post(
-            "api/dashboards/{}".format(dashboard_id), json=properties
-        ).json()
+        return self._post("api/dashboards/{}".format(dashboard_id),
+                          json=properties).json()
 
     def create_widget(self, dashboard_id, visualization_id, text, options):
         data = {
@@ -56,17 +54,15 @@ class Redash(object):
 
         new_dashboard = self.create_dashboard(new_name)
         if current_dashboard["tags"]:
-            self.update_dashboard(
-                new_dashboard["id"], {"tags": current_dashboard["tags"]}
-            )
+            self.update_dashboard(new_dashboard["id"],
+                                  {"tags": current_dashboard["tags"]})
 
         for widget in current_dashboard["widgets"]:
             visualization_id = None
             if "visualization" in widget:
                 visualization_id = widget["visualization"]["id"]
-            self.create_widget(
-                new_dashboard["id"], visualization_id, widget["text"], widget["options"]
-            )
+            self.create_widget(new_dashboard["id"], visualization_id,
+                               widget["text"], widget["options"])
 
         return new_dashboard
 
@@ -94,7 +90,8 @@ class Redash(object):
             items += response["results"]
             page += 1
 
-            stop_loading = response["page"] * response["page_size"] >= response["count"]
+            stop_loading = response["page"] * response[
+                "page_size"] >= response["count"]
 
         return items
 
