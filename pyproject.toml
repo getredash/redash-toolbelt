@@ -6,7 +6,7 @@ authors = ["Redash Maintainers"]
 license = "BSD-2-Clause"
 
 packages = [
-    { include = "redash-toolbelt" }
+    { include = "redash_toolbelt" }
 ]
 
 [tool.poetry.dependencies]
