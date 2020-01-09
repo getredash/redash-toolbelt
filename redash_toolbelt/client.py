@@ -5,7 +5,8 @@ class Redash(object):
     def __init__(self, redash_url, api_key):
         self.redash_url = redash_url
         self.session = requests.Session()
-        self.session.headers.update({'Authorization': 'Key {}'.format(api_key)})
+        self.session.headers.update(
+            {'Authorization': 'Key {}'.format(api_key)})
 
     def test_credentials(self):
         try:
@@ -50,13 +51,15 @@ class Redash(object):
 
         new_dashboard = self.create_dashboard(new_name)
         if current_dashboard['tags']:
-            self.update_dashboard(new_dashboard['id'], {'tags': current_dashboard['tags']})
+            self.update_dashboard(new_dashboard['id'], {
+                                  'tags': current_dashboard['tags']})
 
         for widget in current_dashboard['widgets']:
             visualization_id = None
             if 'visualization' in widget:
                 visualization_id = widget['visualization']['id']
-            self.create_widget(new_dashboard['id'], visualization_id, widget['text'], widget['options'])
+            self.create_widget(
+                new_dashboard['id'], visualization_id, widget['text'], widget['options'])
 
         return new_dashboard
 
@@ -79,12 +82,13 @@ class Redash(object):
         items = []
 
         while not stop_loading:
-            response =  resource(page=page, page_size=page_size)
+            response = resource(page=page, page_size=page_size)
 
             items += response['results']
             page += 1
 
-            stop_loading = response['page'] * response['page_size'] >= response['count']
+            stop_loading = response['page'] * \
+                response['page_size'] >= response['count']
 
         return items
 
