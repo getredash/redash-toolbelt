@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "redash-toolbelt"
+name = "redash_toolbelt"
 version = "0.1.0"
 description = "Redash API client and tools to manage your instance."
 authors = ["Redash Maintainers"]
