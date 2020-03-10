@@ -5,15 +5,16 @@ except ImportError:
 
 
 # Build API client
-apikey = 'RCoU8KMv5voSZSX8XB0BTt9JjFZ3szZsEktNPdnS'
-baseurl = 'https://app.redash.io/default'
+APIKEY = ''
+BASEURL = ''
+DASHBOARD_SLUG = ''
 redash = Redash(baseurl, apikey)
 
 # Get today's dynamic dates
 dd = get_frontend_vals()
 
 # Get a list of queries on this dashboard
-dash = redash.dashboard(slug='curious-metrics')
+dash = redash.dashboard(slug=DASHBOARD_SLUG)
 viz_widgets = [i for i in dash['widgets'] if 'visualization' in i.keys()]
 l_query_ids = [i['visualization']['query']['id'] for i in viz_widgets]
 l_query_info = [redash._get(f'api/queries/{i}').json() for i in l_query_ids]
