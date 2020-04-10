@@ -42,8 +42,11 @@ for q in [i for i in l_query_info if 'parameters' in i['options']]:
 
 		# Case: the date parameter is dynamic.
 		if v in dd._fields:
-			flat_params[f"{k}.start"] = getattr(dd, v).start.strftime('%Y-%m-%d')
-			flat_params[f"{k}.end"] = getattr(dd, v).end.strftime('%Y-%m-%d')
+			try:
+				flat_params[f"{k}.start"] = getattr(dd, v).start.strftime('%Y-%m-%d')
+				flat_params[f"{k}.end"] = getattr(dd, v).end.strftime('%Y-%m-%d')
+			except:
+				flat_params[k] = getattr(dd,v).strftime('%Y-%m-%d')
 
 		# Case: the date parameter is a hardcoded dictionary with 'start' and 'end' keys
 		elif isinstance(v, dict):
