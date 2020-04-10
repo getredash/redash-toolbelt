@@ -4,59 +4,80 @@ except ImportError:
 	from redash_toolbelt import Redash, get_frontend_vals
 
 
-# Build API client
-APIKEY = ''
-BASEURL = ''
-DASHBOARD_SLUG = ''
-redash = Redash(baseurl, apikey)
-
-# Get today's dynamic dates
-dd = get_frontend_vals()
-
-# Get a list of queries on this dashboard
-dash = redash.dashboard(slug=DASHBOARD_SLUG)
-viz_widgets = [i for i in dash['widgets'] if 'visualization' in i.keys()]
-l_query_ids = [i['visualization']['query']['id'] for i in viz_widgets]
-l_query_info = [redash._get(f'api/queries/{i}').json() for i in l_query_ids]
-
-# cycle through each query and refresh it
-#	+ queries without parameters: execute normally.
-# 	+ queries with parameters: pass the default value
-#	+ queries with dynamic date parameters: pass a calculated value
-
-# Refresh queries without parameters
-for q in [i for i in l_query_info if 'parameters' not in i['options']]:
-
-	r = redash._post(f"api/queries/{q['id']}/refresh")
-
-	print(r.status_code)
-
-# Prepare params
-for q in [i for i in l_query_info if 'parameters' in i['options']]:
-
-	raw_params = {f"p_{p.get('name')}": p.get('value') for p in q['options']['parameters'] }
+def refresh_dashboard(baseurl, apikey, slug):
 	
-	# Remove nesting of start and end values on date range parameters
-	flat_params = {}
-	for k,v in raw_params.items():
+	# build a client, fetch the dashboard, and calculate todays dates
+	client = Redash(baseurl, apikey)
+	queries_dict = get_queries_on_dashboard(client, slug)
+	todays_dates = get_frontend_vals()
 
-		# Case: the date parameter is dynamic.
-		if v in dd._fields:
-			try:
-				flat_params[f"{k}.start"] = getattr(dd, v).start.strftime('%Y-%m-%d')
-				flat_params[f"{k}.end"] = getattr(dd, v).end.strftime('%Y-%m-%d')
-			except:
-				flat_params[k] = getattr(dd,v).strftime('%Y-%m-%d')
+	# idx is the query ID. qry is the JSON data about that query ID.
+	for idx, qry in queries_dict.items():
 
-		# Case: the date parameter is a hardcoded dictionary with 'start' and 'end' keys
-		elif isinstance(v, dict):
-			flat_params[f"{k}.start"] = v.get('start')
-			flat_params[f"{k}.end"] = v.get('end')
-		
-		# Case: this is not a date parameter
+		if query_has_parameters(qry):
+			pdict = {i.get('name'): i.get('value')
+				for i in qry['options']['parameters']}
+			params = {key: fill_dynamic_val(todays_dates, val)
+				for key, val in pdict.items()}
 		else:
-			flat_params.update({k:v})
+			params = {}
+		
+		# Now refresh
+		r = client._post(f"api/queries/{idx}/results",
+			json={'parameters': params} )
+		print(r.status_code)
 
-	r = redash._post(f"api/queries/{q['id']}/refresh", params=flat_params)
-	print(r.status_code)
-	
+
+def fill_dynamic_val(dates, val):
+	'''Returns the appropriate dynamic date parameter value.
+	If the input is not a valid dynamic parameter it is returned unchanged.
+	'''
+
+	if val not in dates._fields:
+		return val
+
+	new_val = getattr(dates, val)
+
+	if not is_date_range(new_val):
+		return format_date(new_val)
+
+	else:
+		return dict(start=format_date(new_val.start),
+			end=format_date(new_val.end))
+
+
+def format_date(date_obj):
+	return date_obj.strftime('%Y-%m-%d')
+
+
+def is_date_range(value):
+	return hasattr(value, 'start') and hasattr(value, 'end')
+
+
+def get_queries_on_dashboard(client, slug):
+
+	# Get a list of queries on this dashboard
+	dash = client.dashboard(slug=DASHBOARD_SLUG)
+
+	# Dashboards have visualization and text box widgets. Get the viz widgets.
+	viz_widgets = [i for i in dash['widgets'] if 'visualization' in i.keys()]
+
+	# Visualizations are tied to queries
+	l_query_ids = [i['visualization']['query']['id'] for i in viz_widgets]
+
+	return {id: client._get(f'api/queries/{id}').json() for id in l_query_ids}
+
+
+def query_has_parameters(query_details):
+
+	params = query_details['options'].get('parameters', None)
+	return params is not None and len(params) > 0
+
+
+if __name__ == '__main__':
+	# Build API client
+	APIKEY = '<put your api key here>'
+	BASEURL = '<put your base url here>'
+	DASHBOARD_SLUG = '<put your slug here>'
+
+	refresh_dashboard(BASEURL, APIKEY, DASHBOARD_SLUG)
