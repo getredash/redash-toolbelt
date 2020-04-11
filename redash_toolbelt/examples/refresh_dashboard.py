@@ -1,7 +1,5 @@
-try:
-	from .. import Redash, get_frontend_vals
-except ImportError:
-	from redash_toolbelt import Redash, get_frontend_vals
+import click
+from redash_toolbelt import Redash, get_frontend_vals
 
 
 def refresh_dashboard(baseurl, apikey, slug):
@@ -15,17 +13,15 @@ def refresh_dashboard(baseurl, apikey, slug):
 	for idx, qry in queries_dict.items():
 
 		if query_has_parameters(qry):
-			pdict = {i.get('name'): i.get('value')
-				for i in qry['options']['parameters']}
 			params = {key: fill_dynamic_val(todays_dates, val)
-				for key, val in pdict.items()}
+				for key, val in iter_params(qry)}
 		else:
 			params = {}
-		
+
 		# Now refresh
 		r = client._post(f"api/queries/{idx}/results",
-			json={'parameters': params} )
-		print(r.status_code)
+			json={'parameters': params, "max_age": 0} )
+		print(f"Query: {idx} -- Code {r.status_code}")
 
 
 def fill_dynamic_val(dates, val):
@@ -57,7 +53,7 @@ def is_date_range(value):
 def get_queries_on_dashboard(client, slug):
 
 	# Get a list of queries on this dashboard
-	dash = client.dashboard(slug=DASHBOARD_SLUG)
+	dash = client.dashboard(slug=slug)
 
 	# Dashboards have visualization and text box widgets. Get the viz widgets.
 	viz_widgets = [i for i in dash['widgets'] if 'visualization' in i.keys()]
@@ -73,11 +69,20 @@ def query_has_parameters(query_details):
 	params = query_details['options'].get('parameters', None)
 	return params is not None and len(params) > 0
 
+def iter_params(query_object):
+
+	return {i.get('name'): i.get('value')
+		for i in query_object['options']['parameters']}.items()
+
+
+@click.command()
+@click.argument('url',)
+@click.argument('key',)
+@click.argument('slug',)
+def main(url, key, slug):
+	"""Refresh URL/dashboards/SLUG using key"""
+	refresh_dashboard(url, key, slug)
+
 
 if __name__ == '__main__':
-	# Build API client
-	APIKEY = '<put your api key here>'
-	BASEURL = '<put your base url here>'
-	DASHBOARD_SLUG = '<put your slug here>'
-
-	refresh_dashboard(BASEURL, APIKEY, DASHBOARD_SLUG)
+    main()
