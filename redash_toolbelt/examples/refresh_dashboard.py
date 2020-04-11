@@ -6,8 +6,8 @@ def refresh_dashboard(baseurl, apikey, slug):
 	
 	# build a client, fetch the dashboard, and calculate todays dates
 	client = Redash(baseurl, apikey)
-	queries_dict = get_queries_on_dashboard(client, slug)
 	todays_dates = get_frontend_vals()
+	queries_dict = get_queries_on_dashboard(client, slug)
 
 	# idx is the query ID. qry is the JSON data about that query ID.
 	for idx, qry in queries_dict.items():
@@ -18,36 +18,11 @@ def refresh_dashboard(baseurl, apikey, slug):
 		else:
 			params = {}
 
-		# Now refresh
+		# Pass max_age to ensure a new result is provided.
 		r = client._post(f"api/queries/{idx}/results",
 			json={'parameters': params, "max_age": 0} )
+		
 		print(f"Query: {idx} -- Code {r.status_code}")
-
-
-def fill_dynamic_val(dates, val):
-	'''Returns the appropriate dynamic date parameter value.
-	If the input is not a valid dynamic parameter it is returned unchanged.
-	'''
-
-	if val not in dates._fields:
-		return val
-
-	new_val = getattr(dates, val)
-
-	if not is_date_range(new_val):
-		return format_date(new_val)
-
-	else:
-		return dict(start=format_date(new_val.start),
-			end=format_date(new_val.end))
-
-
-def format_date(date_obj):
-	return date_obj.strftime('%Y-%m-%d')
-
-
-def is_date_range(value):
-	return hasattr(value, 'start') and hasattr(value, 'end')
 
 
 def get_queries_on_dashboard(client, slug):
@@ -69,10 +44,40 @@ def query_has_parameters(query_details):
 	params = query_details['options'].get('parameters', None)
 	return params is not None and len(params) > 0
 
+
+def fill_dynamic_val(dates, val):
+	'''Returns the appropriate dynamic date parameter value.
+	If the input is not a valid dynamic parameter it is returned unchanged.
+	'''
+
+	if val not in dates._fields:
+		return val
+
+	new_val = getattr(dates, val)
+
+	if not is_date_range(new_val):
+		return format_date(new_val)
+
+	else:
+		return dict(start=format_date(new_val.start),
+			end=format_date(new_val.end))
+
+
+def is_date_range(value):
+	return hasattr(value, 'start') and hasattr(value, 'end')
+
+
+def format_date(date_obj):
+	return date_obj.strftime('%Y-%m-%d')
+
+
 def iter_params(query_object):
+	"""Returns an iterator of parameter name-value pairs
+	from an API query object"""
 
 	return {i.get('name'): i.get('value')
 		for i in query_object['options']['parameters']}.items()
+
 
 
 @click.command()
@@ -80,7 +85,8 @@ def iter_params(query_object):
 @click.argument('key',)
 @click.argument('slug',)
 def main(url, key, slug):
-	"""Refresh URL/dashboards/SLUG using key"""
+	"""Refresh URL/dashboards/SLUG using KEY"""
+
 	refresh_dashboard(url, key, slug)
 
 
