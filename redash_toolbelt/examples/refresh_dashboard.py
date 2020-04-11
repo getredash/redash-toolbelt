@@ -9,16 +9,16 @@ def refresh_dashboard(baseurl, apikey, slug):
     todays_dates = get_frontend_vals()
     queries_dict = get_queries_on_dashboard(client, slug)
 
-    # idx is the query ID. qry is the JSON data about that query ID.
+    # loop through each query and it's JSON data
     for idx, qry in queries_dict.items():
+
+        params = {}
 
         if query_has_parameters(qry):
             params = {
                 key: fill_dynamic_val(todays_dates, val)
                 for key, val in iter_params(qry)
             }
-        else:
-            params = {}
 
         request_json = {"parameters": params, "max_age": 0}
 
@@ -58,10 +58,10 @@ def fill_dynamic_val(dates, val):
 
     new_val = getattr(dates, val)
 
-    if not is_date_range(new_val):
+    if is_date_range(new_val):
+        return format_date_range(new_val)
+    else:
         return format_date(new_val)
-
-    return {"start": format_date(new_val.start), "end": format_date(new_val.end)}
 
 
 def is_date_range(value):
@@ -70,6 +70,14 @@ def is_date_range(value):
 
 def format_date(date_obj):
     return date_obj.strftime("%Y-%m-%d")
+
+
+def format_date_range(date_range_obj):
+
+    start = format_date(date_range_obj.start)
+    end = format_date(date_range_obj.end)
+
+    return dict(start=start, end=end)
 
 
 def iter_params(query_object):
