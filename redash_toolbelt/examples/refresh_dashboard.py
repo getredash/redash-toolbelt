@@ -9,7 +9,7 @@ def refresh_dashboard(baseurl, apikey, slug):
     todays_dates = get_frontend_vals()
     queries_dict = get_queries_on_dashboard(client, slug)
 
-    # loop through each query and it's JSON data
+    # loop through each query and its JSON data
     for idx, qry in queries_dict.items():
 
         params = {}
@@ -49,8 +49,12 @@ def query_has_parameters(query_details):
 
 
 def fill_dynamic_val(dates, p):
-    """Returns the appropriate dynamic date parameter value.
-	If the input is not a valid dynamic parameter it is returned unchanged.
+    """Accepts parameter default information from the Redash API.
+
+    If the default value is not a date type, or its value cannot be calculated,
+    then the default value is returned unchanged.
+
+	Otherwise, the dynamic value is retrieved from the dates param and returned
 	"""
 
     if not is_dynamic_param(dates, p):
