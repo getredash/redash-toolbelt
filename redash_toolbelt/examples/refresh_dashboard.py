@@ -16,8 +16,8 @@ def refresh_dashboard(baseurl, apikey, slug):
 
         if query_has_parameters(qry):
             params = {
-                key: fill_dynamic_val(todays_dates, val)
-                for key, val in iter_params(qry)
+                p.get("name"): fill_dynamic_val(todays_dates, p)
+                for p in qry["options"]["parameters"]
             }
 
         request_json = {"parameters": params, "max_age": 0}
@@ -48,20 +48,24 @@ def query_has_parameters(query_details):
     return params is not None and len(params) > 0
 
 
-def fill_dynamic_val(dates, val):
+def fill_dynamic_val(dates, p):
     """Returns the appropriate dynamic date parameter value.
 	If the input is not a valid dynamic parameter it is returned unchanged.
 	"""
 
-    if val not in dates._fields:
-        return val
+    if not is_dynamic_param(dates, p):
+        return p.get("value")
+    dyn_val = getattr(dates, p.get("value"))
 
-    new_val = getattr(dates, val)
-
-    if is_date_range(new_val):
-        return format_date_range(new_val)
+    if is_date_range(dyn_val):
+        return format_date_range(dyn_val)
     else:
-        return format_date(new_val)
+        return format_date(dyn_val)
+
+
+def is_dynamic_param(dates, param):
+
+    return "date" in param.get("type") and param.get("value") in dates._fields
 
 
 def is_date_range(value):
