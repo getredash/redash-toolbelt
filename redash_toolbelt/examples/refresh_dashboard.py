@@ -81,9 +81,12 @@ def format_date_range(date_range_obj):
 
 
 @click.command()
-@click.argument("url",)
-@click.argument("key",)
-@click.argument("slug",)
+@click.argument(
+    "url", )
+@click.argument(
+    "key", )
+@click.argument(
+    "slug", )
 def main(url, key, slug):
     """Refresh URL/dashboards/SLUG using KEY"""
 
