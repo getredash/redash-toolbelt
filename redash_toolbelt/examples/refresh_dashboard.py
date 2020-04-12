@@ -1,59 +1,92 @@
-try:
-	from .. import Redash, get_frontend_vals
-except ImportError:
-	from redash_toolbelt import Redash, get_frontend_vals
+import click
+from redash_toolbelt import Redash, get_frontend_vals
 
 
-# Build API client
-APIKEY = ''
-BASEURL = ''
-DASHBOARD_SLUG = ''
-redash = Redash(baseurl, apikey)
+def refresh_dashboard(baseurl, apikey, slug):
 
-# Get today's dynamic dates
-dd = get_frontend_vals()
+    client = Redash(baseurl, apikey)
+    todays_dates = get_frontend_vals()
+    queries_dict = get_queries_on_dashboard(client, slug)
 
-# Get a list of queries on this dashboard
-dash = redash.dashboard(slug=DASHBOARD_SLUG)
-viz_widgets = [i for i in dash['widgets'] if 'visualization' in i.keys()]
-l_query_ids = [i['visualization']['query']['id'] for i in viz_widgets]
-l_query_info = [redash._get(f'api/queries/{i}').json() for i in l_query_ids]
+    # loop through each query and its JSON data
+    for idx, qry in queries_dict.items():
 
-# cycle through each query and refresh it
-#	+ queries without parameters: execute normally.
-# 	+ queries with parameters: pass the default value
-#	+ queries with dynamic date parameters: pass a calculated value
+        params = {
+            p.get("name"): fill_dynamic_val(todays_dates, p)
+            for p in qry["options"].get("parameters", [])
+        }
 
-# Refresh queries without parameters
-for q in [i for i in l_query_info if 'parameters' not in i['options']]:
+        # Pass max_age to ensure a new result is provided.
+        body = {"parameters": params, "max_age": 0}
 
-	r = redash._post(f"api/queries/{q['id']}/refresh")
+        r = client._post(f"api/queries/{idx}/results", json=body)
 
-	print(r.status_code)
+        print(f"Query: {idx} -- Code {r.status_code}")
 
-# Prepare params
-for q in [i for i in l_query_info if 'parameters' in i['options']]:
 
-	raw_params = {f"p_{p.get('name')}": p.get('value') for p in q['options']['parameters'] }
-	
-	# Remove nesting of start and end values on date range parameters
-	flat_params = {}
-	for k,v in raw_params.items():
+def get_queries_on_dashboard(client, slug):
 
-		# Case: the date parameter is dynamic.
-		if v in dd._fields:
-			flat_params[f"{k}.start"] = getattr(dd, v).start.strftime('%Y-%m-%d')
-			flat_params[f"{k}.end"] = getattr(dd, v).end.strftime('%Y-%m-%d')
+    # Get a list of queries on this dashboard
+    dash = client.dashboard(slug=slug)
 
-		# Case: the date parameter is a hardcoded dictionary with 'start' and 'end' keys
-		elif isinstance(v, dict):
-			flat_params[f"{k}.start"] = v.get('start')
-			flat_params[f"{k}.end"] = v.get('end')
-		
-		# Case: this is not a date parameter
-		else:
-			flat_params.update({k:v})
+    # Dashboards have visualization and text box widgets. Get the viz widgets.
+    viz_widgets = [i for i in dash["widgets"] if "visualization" in i.keys()]
 
-	r = redash._post(f"api/queries/{q['id']}/refresh", params=flat_params)
-	print(r.status_code)
-	
+    # Visualizations are tied to queries
+    l_query_ids = [i["visualization"]["query"]["id"] for i in viz_widgets]
+
+    return {id: client._get(f"api/queries/{id}").json() for id in l_query_ids}
+
+
+def fill_dynamic_val(dates, p):
+    """Accepts parameter default information from the Redash API.
+
+    If the default value is not a date type, or its value cannot be calculated,
+    then the default value is returned unchanged.
+
+	Otherwise, the dynamic value is retrieved from the dates param and returned
+	"""
+
+    if not is_dynamic_param(dates, p):
+        return p.get("value")
+    dyn_val = getattr(dates, p.get("value"))
+
+    if is_date_range(dyn_val):
+        return format_date_range(dyn_val)
+    else:
+        return format_date(dyn_val)
+
+
+def is_dynamic_param(dates, param):
+
+    return "date" in param.get("type") and param.get("value") in dates._fields
+
+
+def is_date_range(value):
+    return hasattr(value, "start") and hasattr(value, "end")
+
+
+def format_date(date_obj):
+    return date_obj.strftime("%Y-%m-%d")
+
+
+def format_date_range(date_range_obj):
+
+    start = format_date(date_range_obj.start)
+    end = format_date(date_range_obj.end)
+
+    return dict(start=start, end=end)
+
+
+@click.command()
+@click.argument("url",)
+@click.argument("key",)
+@click.argument("slug",)
+def main(url, key, slug):
+    """Refresh URL/dashboards/SLUG using KEY"""
+
+    refresh_dashboard(url, key, slug)
+
+
+if __name__ == "__main__":
+    main()
