@@ -44,8 +44,8 @@ def fill_dynamic_val(dates, p):
     If the default value is not a date type, or its value cannot be calculated,
     then the default value is returned unchanged.
 
-	Otherwise, the dynamic value is retrieved from the dates param and returned
-	"""
+        Otherwise, the dynamic value is retrieved from the dates param and returned
+        """
 
     if not is_dynamic_param(dates, p):
         return p.get("value")
