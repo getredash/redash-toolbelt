@@ -84,15 +84,6 @@ def format_date_range(date_range_obj):
     return dict(start=start, end=end)
 
 
-def iter_params(query_object):
-    """Returns an iterator of parameter name-value pairs
-	from an API query object"""
-
-    return {
-        i.get("name"): i.get("value") for i in query_object["options"]["parameters"]
-    }.items()
-
-
 @click.command()
 @click.argument("url",)
 @click.argument("key",)
