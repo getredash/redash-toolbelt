@@ -4,7 +4,6 @@ from redash_toolbelt import Redash, get_frontend_vals
 
 def refresh_dashboard(baseurl, apikey, slug):
 
-    # build a client, fetch the dashboard, and calculate todays dates
     client = Redash(baseurl, apikey)
     todays_dates = get_frontend_vals()
     queries_dict = get_queries_on_dashboard(client, slug)
@@ -17,9 +16,9 @@ def refresh_dashboard(baseurl, apikey, slug):
             for p in qry["options"].get("parameters", [])
         }
 
+        # Pass max_age to ensure a new result is provided.
         request_json = {"parameters": params, "max_age": 0}
 
-        # Pass max_age to ensure a new result is provided.
         r = client._post(f"api/queries/{idx}/results", json=request_json)
 
         print(f"Query: {idx} -- Code {r.status_code}")
