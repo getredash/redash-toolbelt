@@ -12,13 +12,10 @@ def refresh_dashboard(baseurl, apikey, slug):
     # loop through each query and its JSON data
     for idx, qry in queries_dict.items():
 
-        params = {}
-
-        if query_has_parameters(qry):
-            params = {
-                p.get("name"): fill_dynamic_val(todays_dates, p)
-                for p in qry["options"]["parameters"]
-            }
+        params = {
+            p.get("name"): fill_dynamic_val(todays_dates, p)
+            for p in qry["options"].get("parameters", [])
+        }
 
         request_json = {"parameters": params, "max_age": 0}
 
