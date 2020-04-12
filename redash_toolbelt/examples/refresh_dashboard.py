@@ -38,12 +38,6 @@ def get_queries_on_dashboard(client, slug):
     return {id: client._get(f"api/queries/{id}").json() for id in l_query_ids}
 
 
-def query_has_parameters(query_details):
-
-    params = query_details["options"].get("parameters", None)
-    return params is not None and len(params) > 0
-
-
 def fill_dynamic_val(dates, p):
     """Accepts parameter default information from the Redash API.
 
