@@ -17,9 +17,9 @@ def refresh_dashboard(baseurl, apikey, slug):
         }
 
         # Pass max_age to ensure a new result is provided.
-        request_json = {"parameters": params, "max_age": 0}
+        body = {"parameters": params, "max_age": 0}
 
-        r = client._post(f"api/queries/{idx}/results", json=request_json)
+        r = client._post(f"api/queries/{idx}/results", json=body)
 
         print(f"Query: {idx} -- Code {r.status_code}")
 
