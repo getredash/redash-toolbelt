@@ -1,5 +1,6 @@
 import itertools, json, re
 import click
+import pytest
 from redash_toolbelt import Redash
 
 
@@ -97,3 +98,68 @@ def main(url, key, data_source_id, detail):
 
 if __name__ == "__main__":
     main()
+
+def test_1():
+
+    sql = """
+    SELECT field FROM table0 LEFT JOIN table1 ON table0.field = table1.field
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ['table0', 'table1']
+
+def test_2():
+
+    sql = """
+    SELECT field FROM table0 as a LEFT JOIN table1 as b ON a.field = b.field
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ['table0', 'table1']
+
+def test_3():
+
+    sql = """
+    SELECT field FROM table0 a LEFT JOIN table1 b ON a.field = b.field
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ['table0', 'table1']
+
+def test_4():
+
+    sql = """
+    SELECT field FROM schema.table0 a LEFT JOIN schema.table1 b ON a.field = b.field
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ['schema.table0', 'schema.table1']
+
+def test_5():
+
+    sql = """
+    SELECT field
+    FROM
+        table0
+    LEFT JOIN
+        table1
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ['table0', 'table1']
+
+def test_6():
+
+    sql = """
+    SELECT field FROM table1,table0
+    WHERE table0.field = table1.field
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ['schema.table0', 'schema.table1']
