@@ -8,7 +8,7 @@ from redash_toolbelt import Redash
 #   0. A FROM or JOIN statement
 #   1. The whitespace character between FROM/JOIN and table name
 #   2. The table name
-PATTERN = re.compile(r"(?:FROM|JOIN)(?: )([^\s\(\)]+)", flags=re.IGNORECASE)
+PATTERN = re.compile(r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE|re.UNICODE)
 
 
 def find_table_names(url, key, data_source_id):
