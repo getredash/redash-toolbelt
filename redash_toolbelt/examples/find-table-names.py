@@ -23,19 +23,19 @@ def find_table_names(url, key, data_source_id):
     ]
 
     queries = [
-        i
-        for i in client.paginate(client.queries)
-        if i.get("data_source_id", None) == int(data_source_id)
+        query
+        for query in client.paginate(client.queries)
+        if query.get("data_source_id", None) == int(data_source_id)
     ]
 
     tables_by_qry = {
-        i["id"]: [
+        query["id"]: [
             match
-            for match in re.findall(PATTERN, i["query"])
+            for match in re.findall(PATTERN, query["query"])
             if match in schema_tables or len(schema_tables) == 0
         ]
-        for i in queries
-        if re.search(PATTERN, i["query"])
+        for query in queries
+        if re.search(PATTERN, query["query"])
     }
 
     return tables_by_qry
@@ -45,11 +45,13 @@ def print_summary(tables_by_qry):
     """Builds a summary showing table names and count of queries that reference them."""
 
     summary = {
-        t: sum([1 for tables in tables_by_qry.values() if t in tables])
-        for t in itertools.chain(*tables_by_qry.values())
+        table_name: sum(
+            [1 for tables in tables_by_qry.values() if table_name in tables]
+        )
+        for table_name in itertools.chain(*tables_by_qry.values())
     }
 
-    align = max([len(t) for t in summary.keys()])
+    align = max([len(table_name) for table_name in summary.keys()])
 
     print("\n")
     print(f"{'table':>{align}} | {'number of queries':>17}")
@@ -57,14 +59,16 @@ def print_summary(tables_by_qry):
 
     for t, num in sorted(summary.items(), key=lambda item: item[1], reverse=True):
         print(f"{t:>{align}} | {num:>17}")
-    
+
     print("\n")
 
 
 def print_details(tables_by_qry):
     """Prints out (query_id, tablename) tuples"""
 
-    details = [[(qry, t) for t in tables] for qry, tables in tables_by_qry.items()]
+    details = [
+        [(query, table) for table in tables] for query, tables in tables_by_qry.items()
+    ]
 
     for row in itertools.chain(*details):
         print(",".join([str(i) for i in row]))
@@ -74,9 +78,7 @@ def print_details(tables_by_qry):
 @click.argument("url",)
 @click.argument("key",)
 @click.argument("data_source_id")
-@click.option(
-    "--detail", is_flag=True, help="Prints out all table/query pairs?"
-)
+@click.option("--detail", is_flag=True, help="Prints out all table/query pairs?")
 def main(url, key, data_source_id, detail):
     """Find table names referenced in queries against DATA_SOURCE_ID"""
 
