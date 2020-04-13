@@ -51,10 +51,13 @@ def print_summary(tables_by_qry):
 
     align = max([len(t) for t in summary.keys()])
 
-    print(f"\n\n{'table':>{align}} | {'number of queries':>17}")
+    print("\n")
+    print(f"{'table':>{align}} | {'number of queries':>17}")
     print("-" * align + " | " + "-" * 17)
-    for t, num in summary.items():
+
+    for t, num in sorted(summary.items(), key=lambda item: item[1], reverse=True):
         print(f"{t:>{align}} | {num:>17}")
+    
     print("\n")
 
 
