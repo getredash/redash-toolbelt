@@ -3,14 +3,6 @@ import click
 from redash_toolbelt import Redash
 
 
-# This regex captures three groups:
-#
-#   0. A FROM or JOIN statement
-#   1. The whitespace character between FROM/JOIN and table name
-#   2. The table name
-PATTERN = re.compile(r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE|re.UNICODE)
-
-
 def find_table_names(url, key, data_source_id):
 
     client = Redash(url, key)
@@ -29,16 +21,29 @@ def find_table_names(url, key, data_source_id):
     ]
 
     tables_by_qry = {
-        query["id"]: [
-            match
-            for match in re.findall(PATTERN, query["query"])
-            if match in schema_tables or len(schema_tables) == 0
-        ]
+        query["id"]: extract_table_names(query["query"], schema_tables)
         for query in queries
-        if re.search(PATTERN, query["query"])
     }
 
     return tables_by_qry
+
+
+def extract_table_names(str_sql, schema_tables=[]):
+
+    # This regex captures three groups:
+    #
+    #   0. A FROM or JOIN statement
+    #   1. The whitespace character(s) between FROM/JOIN and table name
+    #   2. The table name
+    PATTERN = re.compile(
+        r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
+    )
+
+    return [
+        match
+        for match in re.findall(PATTERN, str_sql)
+        if match in schema_tables or len(schema_tables) == 0
+    ]
 
 
 def print_summary(tables_by_qry):
