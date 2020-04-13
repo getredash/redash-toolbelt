@@ -1,5 +1,6 @@
+import itertools, json, re
+import click
 from redash_toolbelt import Redash
-import json, re, click, itertools
 
 
 # This regex captures three groups:
@@ -7,7 +8,6 @@ import json, re, click, itertools
 #   0. A FROM or JOIN statement
 #   1. The whitespace character between FROM/JOIN and table name
 #   2. The table name
-
 PATTERN = re.compile(r"(FROM|JOIN)( )([^\s\(\)]+)", flags=re.IGNORECASE)
 
 
@@ -45,7 +45,7 @@ def print_summary(tables_by_qry):
     """Builds a summary showing table names and count of queries that reference it."""
 
     summary = {
-        t: sum([1 for qry, tables in tables_by_qry.items() if t in tables])
+        t: sum([1 for tables in tables_by_qry.values() if t in tables])
         for t in itertools.chain(*tables_by_qry.values())
     }
 
