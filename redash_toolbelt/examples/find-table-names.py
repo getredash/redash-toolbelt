@@ -75,14 +75,14 @@ def print_details(tables_by_qry):
 @click.argument("key",)
 @click.argument("data_source_id")
 @click.option(
-    "--detail", default="no", help="Print out all table/query pairs? (yes or no)"
+    "--detail", is_flag=True, help="Prints out all table/query pairs?"
 )
 def main(url, key, data_source_id, detail):
     """Find table names referenced in queries against DATA_SOURCE_ID"""
 
     data = find_table_names(url, key, data_source_id)
 
-    if detail == "yes":
+    if detail:
         print_details(data)
     else:
         print_summary(data)
