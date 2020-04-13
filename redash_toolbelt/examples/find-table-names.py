@@ -155,20 +155,25 @@ def test_5():
     """
 
     tables = extract_table_names(sql)
+    expected = ["table0", "table1"]
 
-    assert tables == ["table0", "table1"]
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_6():
 
     sql = """
-    SELECT field FROM table1,table0
+    SELECT field FROM table1,table2, table3 ,table4 , table5
+            , table6
     WHERE table0.field = table1.field
     """
 
     tables = extract_table_names(sql)
+    expected = ["table1", "table2", "table3", "table4", "table5", "table6"]
 
-    assert tables == ["schema.table0", "schema.table1"]
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
+
+
 def test_7():
 
     sql = """
@@ -176,5 +181,6 @@ def test_7():
     """
 
     tables = extract_table_names(sql)
+    expected = ["table0", "table1"]
 
-    assert tables == ["table0", "table1"]
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
