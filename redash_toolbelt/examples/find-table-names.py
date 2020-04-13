@@ -42,7 +42,7 @@ def find_table_names(url, key, data_source_id):
 
 
 def print_summary(tables_by_qry):
-    """Builds a summary showing table names and count of queries that reference it."""
+    """Builds a summary showing table names and count of queries that reference them."""
 
     summary = {
         t: sum([1 for tables in tables_by_qry.values() if t in tables])
