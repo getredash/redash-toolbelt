@@ -8,7 +8,7 @@ from redash_toolbelt import Redash
 #   0. A FROM or JOIN statement
 #   1. The whitespace character between FROM/JOIN and table name
 #   2. The table name
-PATTERN = re.compile(r"(FROM|JOIN)( )([^\s\(\)]+)", flags=re.IGNORECASE)
+PATTERN = re.compile(r"(?:FROM|JOIN)(?: )([^\s\(\)]+)", flags=re.IGNORECASE)
 
 
 def find_table_names(url, key, data_source_id):
@@ -30,9 +30,9 @@ def find_table_names(url, key, data_source_id):
 
     tables_by_qry = {
         i["id"]: [
-            re_groups[2]
-            for re_groups in re.findall(PATTERN, i["query"])
-            if re_groups[2] in schema_tables or len(schema_tables) == 0
+            match
+            for match in re.findall(PATTERN, i["query"])
+            if match in schema_tables or len(schema_tables) == 0
         ]
         for i in queries
         if re.search(PATTERN, i["query"])
