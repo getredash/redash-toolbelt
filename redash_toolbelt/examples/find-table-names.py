@@ -22,14 +22,18 @@ def find_table_names(url, key, data_source_id):
     ]
 
     tables_by_qry = {
-        query["id"]: extract_table_names(query["query"], schema_tables)
+        query["id"]: [
+            table
+            for table in extract_table_names(query["query"])
+            if table in schema_tables or len(schema_tables) == 0
+        ]
         for query in queries
     }
 
     return tables_by_qry
 
 
-def extract_table_names(str_sql, schema_tables=[]):
+def extract_table_names(str_sql):
 
     # This regex captures three groups:
     #
@@ -40,11 +44,7 @@ def extract_table_names(str_sql, schema_tables=[]):
         r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
     )
 
-    return [
-        match
-        for match in re.findall(PATTERN, str_sql)
-        if match in schema_tables or len(schema_tables) == 0
-    ]
+    return [match for match in re.findall(PATTERN, str_sql)]
 
 
 def print_summary(tables_by_qry):
@@ -99,6 +99,7 @@ def main(url, key, data_source_id, detail):
 if __name__ == "__main__":
     main()
 
+
 def test_1():
 
     sql = """
@@ -107,7 +108,8 @@ def test_1():
 
     tables = extract_table_names(sql)
 
-    assert tables == ['table0', 'table1']
+    assert tables == ["table0", "table1"]
+
 
 def test_2():
 
@@ -117,7 +119,8 @@ def test_2():
 
     tables = extract_table_names(sql)
 
-    assert tables == ['table0', 'table1']
+    assert tables == ["table0", "table1"]
+
 
 def test_3():
 
@@ -127,7 +130,8 @@ def test_3():
 
     tables = extract_table_names(sql)
 
-    assert tables == ['table0', 'table1']
+    assert tables == ["table0", "table1"]
+
 
 def test_4():
 
@@ -137,7 +141,8 @@ def test_4():
 
     tables = extract_table_names(sql)
 
-    assert tables == ['schema.table0', 'schema.table1']
+    assert tables == ["schema.table0", "schema.table1"]
+
 
 def test_5():
 
@@ -151,7 +156,8 @@ def test_5():
 
     tables = extract_table_names(sql)
 
-    assert tables == ['table0', 'table1']
+    assert tables == ["table0", "table1"]
+
 
 def test_6():
 
@@ -162,4 +168,4 @@ def test_6():
 
     tables = extract_table_names(sql)
 
-    assert tables == ['schema.table0', 'schema.table1']
+    assert tables == ["schema.table0", "schema.table1"]
