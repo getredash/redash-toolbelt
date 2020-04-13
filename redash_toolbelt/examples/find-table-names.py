@@ -15,6 +15,13 @@ def find_table_names(url, key, data_source_id):
 
     client = Redash(url, key)
 
+    schema_tables = [
+        token.get("name")
+        for token in client._get(f"api/data_sources/{data_source_id}/schema")
+        .json()
+        .get("schema", [])
+    ]
+
     queries = [
         i
         for i in client.paginate(client.queries)
@@ -22,7 +29,11 @@ def find_table_names(url, key, data_source_id):
     ]
 
     tables_by_qry = {
-        i["id"]: [re_groups[2] for re_groups in re.findall(PATTERN, i["query"])]
+        i["id"]: [
+            re_groups[2]
+            for re_groups in re.findall(PATTERN, i["query"])
+            if re_groups[2] in schema_tables or len(schema_tables) == 0
+        ]
         for i in queries
         if re.search(PATTERN, i["query"])
     }
