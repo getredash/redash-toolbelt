@@ -44,7 +44,7 @@ def extract_table_names(str_sql):
         r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
     )
 
-    return [match for match in re.findall(PATTERN, str_sql)]
+    return [re.sub(r'[\[\]\"\`]', '', match) for match in re.findall(PATTERN, str_sql)]
 
 
 def print_summary(tables_by_qry):
@@ -169,3 +169,12 @@ def test_6():
     tables = extract_table_names(sql)
 
     assert tables == ["schema.table0", "schema.table1"]
+def test_7():
+
+    sql = """
+    SELECT field FROM [table0] LEFT JOIN [table1] ON [table0].field = [table1].field
+    """
+
+    tables = extract_table_names(sql)
+
+    assert tables == ["table0", "table1"]
