@@ -1,8 +1,10 @@
 import itertools
 import json
 import re
+
 import click
 import pytest
+
 from redash_toolbelt import Redash
 
 
