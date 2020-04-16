@@ -53,8 +53,7 @@ def extract_table_names(str_sql):
         r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
     )
 
-    regex_matches = [match for match in re.findall(
-        PATTERN, format_query(str_sql))]
+    regex_matches = [match for match in re.findall(PATTERN, format_query(str_sql))]
 
     # For test_6: expand any comma-delimitted matches
     split_matches = [i.split(",") for i in regex_matches]
@@ -124,8 +123,7 @@ def test_1():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_2():
@@ -137,8 +135,7 @@ def test_2():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_3():
@@ -150,8 +147,7 @@ def test_3():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_4():
@@ -163,8 +159,7 @@ def test_4():
     tables = extract_table_names(sql)
     expected = ["schema.table0", "schema.table1"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_5():
@@ -180,8 +175,7 @@ def test_5():
     tables = extract_table_names(sql)
     expected = ["table0", "table1"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_6():
@@ -195,8 +189,7 @@ def test_6():
     tables = extract_table_names(sql)
     expected = ["table1", "table2", "table3", "table4", "table5", "table6"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
 
 
 def test_7():
@@ -208,5 +201,4 @@ def test_7():
     tables = extract_table_names(sql)
     expected = ["[table0]", "[table1]"]
 
-    assert len(tables) == len(expected) and all(
-        [i in expected for i in tables])
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
