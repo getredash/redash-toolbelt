@@ -33,13 +33,28 @@ def find_table_names(url, key, data_source_id):
     return tables_by_qry
 
 
+def format_query(str_sql):
+    """Strips all newlines, excess whitespace, and spaces around commas"""
+
+    stage1 = str_sql.replace("\n", " ")
+    stage2 = re.sub(r"\s+", " ", stage1).strip()
+    stage3 = re.sub(r"(\s*,\s*)", ",", stage2)
+
+    return stage3
+
+
 def extract_table_names(str_sql):
 
     PATTERN = re.compile(
         r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
     )
 
-    return [match for match in re.findall(PATTERN, str_sql)]
+    regex_matches = [match for match in re.findall(PATTERN, format_query(str_sql))]
+
+    # For test_6: expand any comma-delimitted matches
+    split_matches = [i.split(",") for i in regex_matches]
+
+    return [i for i in itertools.chain(*split_matches)]
 
 
 def print_summary(tables_by_qry):
