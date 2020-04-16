@@ -11,8 +11,7 @@ class Lookup(object):
         if not query_result_id:
             return False
 
-        result = self.redash._get(
-            "api/query_results/{}".format(query_result_id))
+        result = self.redash._get("api/query_results/{}".format(query_result_id))
 
         return self.email in result.text.lower()
 
@@ -26,8 +25,7 @@ class Lookup(object):
             if self.email in (tag or "").lower():
                 found_in_query = True
 
-        found_in_result = self.check_query_result(
-            query["latest_query_data_id"])
+        found_in_result = self.check_query_result(query["latest_query_data_id"])
 
         return found_in_query or found_in_result
 
@@ -64,8 +62,7 @@ class Lookup(object):
             found_q = [query for query in bar if self.check_query(query)]
 
         for query in found_q:
-            query_url = "{}/queries/{}".format(
-                self.redash.redash_url, query["id"])
+            query_url = "{}/queries/{}".format(self.redash.redash_url, query["id"])
             print(query_url)
 
         dashboards = self.redash.paginate(self.redash.dashboards)
@@ -74,8 +71,7 @@ class Lookup(object):
             found_d = [dash for dash in bar if self.check_dashboard(dash)]
 
         for dash in found_d:
-            dash_url = "{}/dashboards/{}".format(
-                self.redash.redash_url, dash["slug"])
+            dash_url = "{}/dashboards/{}".format(self.redash.redash_url, dash["slug"])
             print(dash_url)
 
 
