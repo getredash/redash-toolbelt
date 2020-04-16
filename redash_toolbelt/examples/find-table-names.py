@@ -35,11 +35,6 @@ def find_table_names(url, key, data_source_id):
 
 def extract_table_names(str_sql):
 
-    # This regex captures three groups:
-    #
-    #   0. A FROM or JOIN statement
-    #   1. The whitespace character(s) between FROM/JOIN and table name
-    #   2. The table name
     PATTERN = re.compile(
         r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
     )
