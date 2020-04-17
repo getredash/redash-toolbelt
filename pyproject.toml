@@ -16,6 +16,9 @@ click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 
+[tool.poetry.scripts]
+find-tables = "redash_toolbelt.examples.find_table_names:main"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
