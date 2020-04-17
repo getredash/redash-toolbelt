@@ -51,8 +51,9 @@ def extract_table_names(str_sql):
 
     fmt_sql = format_query(str_sql)
 
-    # This pattern captures all text that immdiately follows a FROM or JOIN keyword except whitespace and parentheses.
-    # It effectively removes table aliases like "<table> as t" or "<table> t"
+    # This pattern captures all text that immdiately follows a FROM or JOIN
+    # keyword except whitespace and parentheses. It effectively removes table
+    # aliases like "<table> as t" or "<table> t"
     PATTERN = re.compile(
         r"(?:FROM|JOIN)(?:\s+)([^\s\(\)]+)", flags=re.IGNORECASE | re.UNICODE
     )
@@ -67,11 +68,21 @@ def extract_table_names(str_sql):
     #   1. Find all text between FROM->WHERE and FROM->JOIN keywords
     #   2. Replace any commas with `FROM` keywords
     #   3. Apply the same PATTERN match used above which ignores aliases
-    after_from_before_keyword = [match for match in re.findall(r"(?:FROM)(.*)(?:WHERE|JOIN)", fmt_sql)]
-    sub_keyword_for_comma = [segment.replace(",", " FROM ") for segment in after_from_before_keyword]
-    sub_regex_matches = [re.findall(PATTERN, format_query(i)) for i in sub_keyword_for_comma]
+    after_from_before_keyword = [
+        match for match in re.findall(r"(?:FROM)(.*)(?:WHERE|JOIN)", fmt_sql)
+    ]
+    sub_keyword_for_comma = [
+        segment.replace(",", " FROM ") for segment in after_from_before_keyword
+    ]
+    sub_regex_matches = [
+        re.findall(PATTERN, format_query(i)) for i in sub_keyword_for_comma
+    ]
 
-    flattened_sub_matches = [i for i in itertools.chain(*sub_regex_matches) if i not in flattened_split_matches]
+    flattened_sub_matches = [
+        i
+        for i in itertools.chain(*sub_regex_matches)
+        if i not in flattened_split_matches
+    ]
 
     return [*flattened_split_matches, *flattened_sub_matches]
 
@@ -226,7 +237,7 @@ def test_8():
     """
 
     tables = extract_table_names(sql)
-    expected = ["table1","table2","table3","table4"]
+    expected = ["table1", "table2", "table3", "table4"]
 
     assert len(tables) == len(expected) and all([i in expected for i in tables])
 
@@ -240,6 +251,6 @@ def test_9():
     """
 
     tables = extract_table_names(sql)
-    expected = ["table1","table2","table3","table4", "table5"]
+    expected = ["table1", "table2", "table3", "table4", "table5"]
 
     assert len(tables) == len(expected) and all([i in expected for i in tables])
