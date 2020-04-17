@@ -1,4 +1,5 @@
 import click
+
 from redash_toolbelt import Redash
 
 
