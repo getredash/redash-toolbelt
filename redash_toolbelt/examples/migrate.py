@@ -79,22 +79,22 @@ def get_users(url, api_key):
 
 
 def import_users():
-    print "Importing users..."
+    print("Importing users...")
 
     users = get_users(ORIGIN, ORIGIN_API_KEY)
     for user in users:
-        print "   importing: {}".format(user['id'])
+        print("   importing: {}".format(user['id']))
         data = {
             "name": user['name'],
             "email": user['email']
         }
 
         if str(user['id']) in meta['users']:
-            print "    ... skipping: exists."
+            print("    ... skipping: exists.")
             continue
 
         if user['email'] == 'admin':
-            print "    ... skipping: admin."
+            print("    ... skipping: admin.")
             continue
 
         response = requests.post(DESTINATION + '/api/users?no_invite=1',
@@ -148,19 +148,19 @@ def convert_schedule(schedule):
 
 
 def import_queries():
-    print "Import queries..."
+    print("Import queries...")
 
     queries = get_queries(ORIGIN, ORIGIN_API_KEY)
 
     for query in queries:
-        print "   importing: {}".format(query['id'])
+        print("   importing: {}".format(query['id']))
         data_source_id = DATA_SOURCES.get(query['data_source_id'])
         if data_source_id is None:
-            print "   skipped ({})".format(data_source_id)
+            print("   skipped ({})".format(data_source_id))
             continue
 
         if str(query['id']) in meta['queries']:
-            print "   skipped - was already imported".format(data_source_id)
+            print("   skipped - was already imported".format(data_source_id))
             continue
 
         data = {
@@ -187,11 +187,11 @@ def import_queries():
 
 
 def import_visualizations():
-    print "Importing visualizations..."
+    print("Importing visualizations...")
 
-    for query_id, new_query_id in meta['queries'].iteritems():
+    for query_id, new_query_id in meta['queries'].items():
         query = api_request('/api/queries/{}'.format(query_id))
-        print "   importing visualizations of: {}".format(query_id)
+        print("   importing visualizations of: {}".format(query_id))
 
         for v in query['visualizations']:
             if v['type'] == 'TABLE':
@@ -223,12 +223,12 @@ def import_visualizations():
 
 
 def import_dashboards():
-    print "Importing dashboards..."
+    print("Importing dashboards...")
 
     dashboards = get_paginated_resource(ORIGIN + '/api/dashboards', ORIGIN_API_KEY)
 
     for dashboard in dashboards:
-        print "   importing: {}".format(dashboard['slug'])
+        print("   importing: {}".format(dashboard['slug']))
         d = api_request('/api/dashboards/{}'.format(dashboard['slug']))
         data = {'name': d['name']}
         user = user_with_api_key(d['user_id'])
@@ -258,7 +258,7 @@ def import_dashboards():
                     str(widget['visualization']['id']))
 
             if 'visualization' in widget and not data['visualization_id']:
-                print 'skipping for missing viz'
+                print('skipping for missing viz')
                 continue
 
             response = requests.post(
@@ -271,11 +271,11 @@ def fix_queries():
     This runs after importing all queries, so we can update the query id reference
     in parameter definitions.
     """
-    print "Updating queries options..."
+    print("Updating queries options...")
 
-    for query_id, new_query_id in meta['queries'].iteritems():
+    for query_id, new_query_id in meta['queries'].items():
         query = api_request('/api/queries/{}'.format(query_id))
-        print "   Fixing: {}".format(query_id)
+        print("   Fixing: {}".format(query_id))
 
         options = query['options']
         for p in options.get('parameters', []):
@@ -288,7 +288,7 @@ def fix_queries():
 
 
 def save_meta():
-    print "Saving meta..."
+    print("Saving meta...")
     with open('meta.json', 'w') as f:
         json.dump(meta, f)
 
