@@ -16,6 +16,9 @@ click = "^7.0"
 
 [tool.poetry.dev-dependencies]
 
+[tool.poetry.scripts]
+gdpr-scrub = "redash_toolbelt.examples.gdpr_scrub:lookup"
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
