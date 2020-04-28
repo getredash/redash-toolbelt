@@ -97,23 +97,19 @@ class Redash(object):
         path = "api/visualizations/{}".format(viz_id)
         return self._post(path, json=data)
 
-    def paginate(self, resource):
+    def paginate(self, resource, page=1, page_size=100):
         """Load all items of a paginated resource"""
-        stop_loading = False
-        page = 1
-        page_size = 100
 
-        items = []
+        response = resource(page=page, page_size=page_size)
+        items = response["results"]
 
-        while not stop_loading:
-            response = resource(page=page, page_size=page_size)
-
-            items += response["results"]
-            page += 1
-
-            stop_loading = response["page"] * response["page_size"] >= response["count"]
-
-        return items
+        if response["page"] * response["page_size"] >= response["count"]:
+            return items
+        else:
+            return [
+                *items,
+                *self.paginate(resource, page=page + 1, page_size=page_size),
+            ]
 
     def _get(self, path, **kwargs):
         return self._request("GET", path, **kwargs)
