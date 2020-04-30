@@ -42,47 +42,11 @@ meta = {
 
 meta["users"] = {int(key): val for key,val in meta["users"].items()}
 
-def auth_headers(api_key):
-    return {
-        "Authorization": "Key {}".format(api_key)
-    }
 
-
-def api_request(api):
-    response = requests.get(ORIGIN + api, headers=auth_headers(ORIGIN_API_KEY))
-    response.raise_for_status()
-
-    return response.json()
-
-def get_paginated_resource(resource, api_key):
-    objects = []
-    headers = {'Authorization': 'Key {}'.format(api_key)}
-    has_more = True
-    page = 1
-    while has_more:
-        response = requests.get(resource, headers=headers,
-                                params={'page': page}).json()
-        objects.extend(response['results'])
-        has_more = page * response['page_size'] + 1 <= response['count']
-        page += 1
-
-    return objects 
-
-
-def get_queries(url, api_key):
-    path = "{}/api/queries".format(url)
-    return get_paginated_resource(path, api_key)
-
-
-def get_users(url, api_key):
-    path = "{}/api/users".format(url)
-    return get_paginated_resource(path, api_key)
-
-
-def import_users():
+def import_users(orig_client, dest_client):
     print("Importing users...")
 
-    users = get_users(ORIGIN, ORIGIN_API_KEY)
+    users = orig_client.paginate(orig_client.users)
     for user in users:
         print("   importing: {}".format(user['id']))
         data = {
@@ -98,9 +62,7 @@ def import_users():
             print("    ... skipping: admin.")
             continue
 
-        response = requests.post(DESTINATION + '/api/users?no_invite=1',
-                                 json=data, headers=auth_headers(DESTINATION_API_KEY))
-        response.raise_for_status()
+        response = dest_client._post(f'/api/users?no_invite=1', json=data)
 
         new_user = response.json()
         meta['users'][user['id']] = {
@@ -110,10 +72,8 @@ def import_users():
         }
 
 
-def get_api_key(user_id):
-    response = requests.get(DESTINATION + '/api/users/{}'.format(user_id),
-                            headers=auth_headers(DESTINATION_API_KEY))
-    response.raise_for_status()
+def get_api_key(client, user_id):
+    client.get(f'/api/users/{user_id}')
 
     return response.json()['api_key']
 
@@ -148,13 +108,16 @@ def convert_schedule(schedule):
     return schedule_json
 
 
-def import_queries():
+def import_queries(orig_client, dest_client):
     print("Import queries...")
 
-    queries = get_queries(ORIGIN, ORIGIN_API_KEY)
+    queries = orig_client.paginate(orig_client.queries)
 
     for query in queries:
-        print("   importing: {}".format(query['id']))
+
+        origin_id = query['id']
+
+        print(f"   importing: {origin_id}")
         data_source_id = DATA_SOURCES.get(query['data_source_id'])
         if data_source_id is None:
             print("   skipped ({})".format(data_source_id))
@@ -173,32 +136,34 @@ def import_queries():
             "name": query['name'],
         }
 
-        user = user_with_api_key(query['user']['id'])
+        user_api_key = get_api_key(client, query['user']['id'])
+        user_client = Redash(DESTINATION, user_api_key)
+        response = user_client._post("/api/queries", json=data)
 
-        response = requests.post(
-            DESTINATION + '/api/queries', json=data, headers=auth_headers(user['api_key']))
-        response.raise_for_status()
+        destination_id = response.json()['id']
+        meta['queries'][query['id']] = destination_id
 
-        new_query_id = response.json()['id']
-        meta['queries'][query['id']] = new_query_id
-
+        # New queries are always saved as drafts.
+        # Need to sync the ORIGIN draft status to DESTINATION.
         if not query['is_draft']:
-            response = requests.post(DESTINATION + '/api/queries/' + str(new_query_id), json={'is_draft': False}, headers=auth_headers(user['api_key']))
-            response.raise_for_status()
+            response = dest_client._post(
+                f"{DESTINATION}'/api/queries/{destination_id}",json={'is_draft': False})
 
 
-def import_visualizations():
+
+def import_visualizations(orig_client, dest_client):
     print("Importing visualizations...")
 
     for query_id, new_query_id in meta['queries'].items():
-        query = api_request('/api/queries/{}'.format(query_id))
+        query = orig_client._get(f'/api/queries/{query_id}')
+        orig_user_id = query['user']['id']
+        dest_user_id = meta['users'].get(orig_user_id).get('id')
+
         print("   importing visualizations of: {}".format(query_id))
 
         for v in query['visualizations']:
             if v['type'] == 'TABLE':
-                response = requests.get(DESTINATION + '/api/queries/{}'.format(
-                    new_query_id), headers=auth_headers(DESTINATION_API_KEY))
-                response.raise_for_status()
+                response = dest_client._get(f'/api/queries/{new_query_id}')
 
                 new_vis = response.json()['visualizations']
                 for new_v in new_vis:
@@ -208,7 +173,9 @@ def import_visualizations():
                 if str(v['id']) in meta['visualizations']:
                     continue
 
-                user = user_with_api_key(query['user']['id'])
+                user_api_key = get_api_key(dest_client, dest_user_id)
+                user_client = Redash(DESTINATION, user_api_key)
+    
                 data = {
                     "name": v['name'],
                     "description": v['description'],
@@ -216,30 +183,33 @@ def import_visualizations():
                     "type": v['type'],
                     "query_id": new_query_id
                 }
-                response = requests.post(
-                    DESTINATION + '/api/visualizations', json=data, headers=auth_headers(user['api_key']))
-                response.raise_for_status()
+                response = user_client._post('/api/visualizations', json=data)
 
                 meta['visualizations'][v['id']] = response.json()['id']
 
 
-def import_dashboards():
+def import_dashboards(orig_client, dest_client):
     print("Importing dashboards...")
 
-    dashboards = get_paginated_resource(ORIGIN + '/api/dashboards', ORIGIN_API_KEY)
+    dashboards = orig_client.paginate(orig_client.dashboards)
 
     for dashboard in dashboards:
         print("   importing: {}".format(dashboard['slug']))
-        d = api_request('/api/dashboards/{}'.format(dashboard['slug']))
+
+        d = orig_client(f'/api/dashboards/{dashboard['slug']}')
+
+        orig_user_id = d['user']['id']
+        dest_user_id = meta['users'].get(orig_user_id).get('id')
+
         data = {'name': d['name']}
-        user = user_with_api_key(d['user_id'])
-        response = requests.post(
-            DESTINATION + '/api/dashboards', json=data, headers=auth_headers(user['api_key']))
-        response.raise_for_status()
+        
+        user_api_key = get_api_key(dest_client, dest_user_id)
+        user_client = Redash(DESTINATION, user_api_key)        
+
+        response = dest_client._post('/api/dashboards', json=data)
 
         new_dashboard = response.json()
-        requests.post(
-            DESTINATION + '/api/dashboards/{}'.format(new_dashboard['id']), json={'is_draft': False}, headers=auth_headers(user['api_key']))
+        user_client._post(f'/api/dashboards/{new_dashboard['id']}', json={'is_draft': False})
 
         # recreate widget
         for widget in d['widgets']:
@@ -262,12 +232,10 @@ def import_dashboards():
                 print('skipping for missing viz')
                 continue
 
-            response = requests.post(
-                DESTINATION + '/api/widgets', json=data, headers=auth_headers(user['api_key']))
-            response.raise_for_status()
+            response = user_client._post('/api/widgets', json=data)
 
 
-def fix_queries():
+def fix_queries(orig_client, dest_client):
     """
     This runs after importing all queries, so we can update the query id reference
     in parameter definitions.
@@ -275,7 +243,10 @@ def fix_queries():
     print("Updating queries options...")
 
     for query_id, new_query_id in meta['queries'].items():
-        query = api_request('/api/queries/{}'.format(query_id))
+        query = orig_client(f'/api/queries/{query_id}')
+        orig_user_id = query['user']['id']
+        dest_user_id = meta['users'].get(orig_user_id).get('id')
+
         print("   Fixing: {}".format(query_id))
 
         options = query['options']
@@ -283,9 +254,9 @@ def fix_queries():
             if 'queryId' in p:
                 p['queryId'] = meta['queries'].get(str(p['queryId']))
 
-        user = user_with_api_key(query['user']['id'])
-        response = requests.post(DESTINATION + '/api/queries/' + str(new_query_id), json={'options': options}, headers=auth_headers(user['api_key']))
-        response.raise_for_status()
+        user_api_key = get_api_key(dest_user_id)
+        user_client = Redash(DESTINATION, user_api_key)
+        response = user_client._post(f'/api/queries/{new_query_id}', json={'options': options})
 
 
 def save_meta():
