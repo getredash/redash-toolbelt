@@ -40,6 +40,7 @@ meta = {
     "dashboards": {}
 }
 
+meta["users"] = {int(key): val for key,val in meta["users"].items()}
 
 def auth_headers(api_key):
     return {
@@ -89,7 +90,7 @@ def import_users():
             "email": user['email']
         }
 
-        if str(user['id']) in meta['users']:
+        if user['id'] in  meta['users']:
             print("    ... skipping: exists.")
             continue
 
@@ -118,7 +119,7 @@ def get_api_key(user_id):
 
 
 def user_with_api_key(user_id):
-    user = meta['users'].get(user_id) or meta['users'].get(str(user_id))
+    user = meta['users'].get(user_id)
     if 'api_key' not in user:
         user['api_key'] = get_api_key(user['id'])
     return user
@@ -159,8 +160,8 @@ def import_queries():
             print("   skipped ({})".format(data_source_id))
             continue
 
-        if str(query['id']) in meta['queries']:
-            print("   skipped - was already imported".format(data_source_id))
+        if origin_id in meta['queries']:
+            print("   skipped - was already imported".format(origin_id))
             continue
 
         data = {
