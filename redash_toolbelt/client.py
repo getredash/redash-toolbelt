@@ -60,6 +60,18 @@ class Redash(object):
 
         return new_dashboard
 
+    def duplicate_query(self, query_id, new_name=None):
+
+        response = self._post(f"api/queries/{query_id}/fork")
+        new_query = response.json()
+
+        if not new_name:
+            return new_query
+
+        new_query["name"] = new_name
+
+        return self.update_query(new_query.get("id"), new_query).json()
+
     def scheduled_queries(self):
         """Loads all queries and returns only the scheduled ones."""
         queries = self.paginate(self.queries)
