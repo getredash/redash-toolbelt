@@ -4,6 +4,9 @@ from redash_toolbelt import Redash
 
 
 def duplicate(client, slug, prefix=None):
+    """Creates a blank dashboard, duplicates the original's queries,
+    and populates it with fresh widgets that mirror the original widgets.
+    """
 
     # Copped this logic directly from Redash.duplicate_dashboard
     current_dashboard = client.dashboard(slug)
@@ -70,8 +73,8 @@ def duplicate(client, slug, prefix=None):
     prompt="API Key",
     help="User API Key",
 )
-def main(redash_host, slug, prefix, api_key):
-    """Search for EMAIL in queries and query results, output query URL if found."""
+def main(redash_host, slug, prefix="", api_key):
+    """Calls the duplicate function using Click commands"""
 
     client = Redash(redash_host, api_key)
     duplicate(client, slug, prefix)
