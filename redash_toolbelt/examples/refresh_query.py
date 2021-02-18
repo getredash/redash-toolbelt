@@ -2,6 +2,7 @@ import os
 import requests
 import time
 from pprint import pprint
+import json
 
 
 def poll_job(s, redash_url, job):
@@ -21,7 +22,9 @@ def get_fresh_query_result(redash_url, query_id, api_key, params):
     s = requests.Session()
     s.headers.update({'Authorization': 'Key {}'.format(api_key)})
 
-    response = s.post('{}/api/queries/{}/refresh'.format(redash_url, query_id), params=params)
+    payload = dict(max_age=0, parameters=params)
+
+    response = s.post('{}/api/queries/{}/results'.format(redash_url, query_id), data=json.dumps(payload))
 
     if response.status_code != 200:
         raise Exception('Refresh failed.')
@@ -38,7 +41,7 @@ def get_fresh_query_result(redash_url, query_id, api_key, params):
     return response.json()['query_result']['data']['rows']
 
 if __name__ == '__main__':
-    params = {'p_param': 1243}
+    params = {'some_parameter': 1}
     query_id = 1234
     # Need to use a *user API key* here (and not a query API key).
     api_key = '...'

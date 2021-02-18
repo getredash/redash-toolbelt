@@ -17,6 +17,7 @@ click = "^7.0"
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
+gdpr-scrub = "redash_toolbelt.examples.gdpr_scrub:lookup"
 find-tables = "redash_toolbelt.examples.find_table_names:main"
 
 [build-system]
