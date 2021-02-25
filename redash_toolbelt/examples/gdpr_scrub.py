@@ -77,7 +77,7 @@ class Lookup(object):
         return found_in_dashboard or found_in_widget or found_in_tags
 
     def lookup(self):
-        queries = self.redash.paginate(self.redash.queries)
+        queries = self.redash.queries()
 
         with click.progressbar(queries, label="Queries") as bar:
             found_q = [query for query in bar if self.check_query(query)]
@@ -86,7 +86,7 @@ class Lookup(object):
             query_url = "{}/queries/{}".format(self.redash.redash_url, query["id"])
             print(query_url)
 
-        dashboards = self.redash.paginate(self.redash.dashboards)
+        dashboards = self.redash.dashboards()
 
         with click.progressbar(dashboards, label="Dashboards") as bar:
             found_d = [dash for dash in bar if self.check_dashboard(dash)]
