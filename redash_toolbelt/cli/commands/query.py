@@ -24,7 +24,7 @@ def list_command(app, id_only, raw):
     This command lists all queries from a redash deployment.
     """
     api = app.get_api()
-    all_queries = api.da()
+    all_queries = api.queries()
     if id_only:
         for _ in sorted(all_queries, key=lambda k: k["id"]):
             app.echo_info(str(_["id"]))
@@ -73,7 +73,7 @@ def query():
     """List and open queries.
 
     Queries retrieve data from a data source based on a custom query string.
-    They are identified with a unique integer.
+    They are identified with a unique integr
     """
 
 
