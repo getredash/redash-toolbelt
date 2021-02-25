@@ -1,4 +1,4 @@
-"""User commands."""
+"""Groups commands."""
 import click
 
 import redash_toolbelt.cli.completion as completion
@@ -19,62 +19,61 @@ from redash_toolbelt.cli.commands import CustomCommand, CustomGroup
 )
 @click.pass_obj
 def list_command(app, id_only, raw):
-    """List users.
+    """List Groups.
 
-    This command lists all users from a redash deployment.
+    This command lists all user groups from a redash deployment.
     """
     api = app.get_api()
-    all_users = api.users()
+    all_groups = api.groups()
     if id_only:
-        for _ in sorted(all_users, key=lambda k: k["id"]):
+        for _ in sorted(all_groups, key=lambda k: k["id"]):
             app.echo_info(str(_["id"]))
         return
     if raw:
-        app.echo_info_json(all_users)
+        app.echo_info_json(all_groups)
         return
     table = []
-    for _ in sorted(all_users, key=lambda k: k["name"].lower()):
+    for _ in sorted(all_groups, key=lambda k: k["name"].lower()):
         row = [
             _["id"],
             _["name"],
-            _["email"]
         ]
         table.append(row)
     app.echo_info_table(
         table,
-        headers=["ID", "Name", "Email"]
+        headers=["ID", "Name"]
     )
 
 
 @click.command(cls=CustomCommand, name="open")
 @click.argument(
-    "USER_IDS",
+    "GROUP_IDS",
     type=click.INT,
     nargs=-1,
     required=True,
-    autocompletion=completion.users
+    autocompletion=completion.groups
 )
 @click.pass_obj
-def open_command(app, user_ids):
+def open_command(app, group_ids):
     """Open a user profile in the browser.
 
-    With this command, you can open a user profile in your browser
-    The command accepts multiple user IDs.
+    With this command, you can open a user group in your browser
+    The command accepts multiple user group IDs.
     """
     api = app.get_api()
-    for _ in user_ids:
-        open_query_uri = api.redash_url + "/users/" + str(_)
+    for _ in group_ids:
+        open_query_uri = api.redash_url + "/groups/" + str(_)
         app.echo_debug("Open {}: {}".format(_, open_query_uri))
         click.launch(open_query_uri)
 
 
 @click.group(cls=CustomGroup)
-def user():
-    """List and open users.
+def group():
+    """List and open user groups.
 
-    Users are identified with a unique integer.
+    User groups are identified with a unique integer.
     """
 
 
-user.add_command(list_command)
-user.add_command(open_command)
+group.add_command(list_command)
+group.add_command(open_command)

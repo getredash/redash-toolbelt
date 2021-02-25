@@ -170,6 +170,7 @@ def dashboards(ctx, args, incomplete):
         sort_by=SORT_BY_DESC
     )
 
+
 def users(ctx, args, incomplete):
     """Prepare a list of users."""
     # since ctx does not have an obj here, we re-create the object
@@ -177,6 +178,21 @@ def users(ctx, args, incomplete):
     api = CONTEXT.get_api()
     options = []
     for _ in api.users():
+        options.append((str(_["id"]), _["name"]))
+    return _finalize_completion(
+        candidates=options,
+        incomplete=incomplete,
+        sort_by=SORT_BY_DESC
+    )
+
+
+def groups(ctx, args, incomplete):
+    """Prepare a list of users groups."""
+    # since ctx does not have an obj here, we re-create the object
+    CONTEXT.set_connection_from_args(args)
+    api = CONTEXT.get_api()
+    options = []
+    for _ in api.groups():
         options.append((str(_["id"]), _["name"]))
     return _finalize_completion(
         candidates=options,

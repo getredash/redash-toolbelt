@@ -1,4 +1,4 @@
-"""Data source commands."""
+"""Dashboard commands."""
 import click
 
 import redash_toolbelt.cli.completion as completion

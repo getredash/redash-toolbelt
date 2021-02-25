@@ -28,6 +28,7 @@ class CustomGroup(HelpColorsGroup, DYMGroup):
             {
                 "config": COLOR_FOR_COMMAND_GROUPS,
                 "dashboard": COLOR_FOR_COMMAND_GROUPS,
+                "group": COLOR_FOR_COMMAND_GROUPS,
                 "query": COLOR_FOR_COMMAND_GROUPS,
                 "source": COLOR_FOR_COMMAND_GROUPS,
                 "user": COLOR_FOR_COMMAND_GROUPS,
