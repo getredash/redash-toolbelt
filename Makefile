@@ -2,7 +2,7 @@
 
 ## cleanup build artifacts
 clean:
-	rm -rf cover .coverage cover.xml .tox/ nosetests* dist build cmempy.egg-info
+	rm -rf cover .coverage cover.xml .tox/ nosetests* dist build *.egg-info
 	find . -name "*.pyc" -print0 | xargs -0 rm
 
 ## clean up everything (including git cleanup)
