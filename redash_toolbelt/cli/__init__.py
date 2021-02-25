@@ -10,7 +10,8 @@ from redash_toolbelt.cli.commands import (
     config,
     dashboard,
     query,
-    source
+    source,
+    user
 )
 from redash_toolbelt.cli.context import CONTEXT
 from redash_toolbelt.cli.exceptions import (
@@ -102,6 +103,7 @@ cli.add_command(config.config)
 cli.add_command(dashboard.dashboard)
 cli.add_command(query.query)
 cli.add_command(source.source)
+cli.add_command(user.user)
 
 
 def main():

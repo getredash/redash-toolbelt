@@ -30,6 +30,7 @@ class CustomGroup(HelpColorsGroup, DYMGroup):
                 "dashboard": COLOR_FOR_COMMAND_GROUPS,
                 "query": COLOR_FOR_COMMAND_GROUPS,
                 "source": COLOR_FOR_COMMAND_GROUPS,
+                "user": COLOR_FOR_COMMAND_GROUPS,
             }
         )
         super().__init__(*args, **kwargs)
