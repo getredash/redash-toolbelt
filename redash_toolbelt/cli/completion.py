@@ -154,3 +154,18 @@ def sources(ctx, args, incomplete):
         incomplete=incomplete,
         sort_by=SORT_BY_DESC
     )
+
+
+def dashboards(ctx, args, incomplete):
+    """Prepare a list of dashboards."""
+    # since ctx does not have an obj here, we re-create the object
+    CONTEXT.set_connection_from_args(args)
+    api = CONTEXT.get_api()
+    options = []
+    for _ in api.dashboards():
+        options.append((str(_["slug"]), _["name"]))
+    return _finalize_completion(
+        candidates=options,
+        incomplete=incomplete,
+        sort_by=SORT_BY_DESC
+    )

@@ -74,7 +74,7 @@ def source():
     """List and open data sources.
 
     Data sources configure data access to an external data provider.
-    They are used run queries on them.
+    They are used run queries on them and are identified with a unique integer.
     """
 
 

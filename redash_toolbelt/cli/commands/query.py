@@ -73,6 +73,7 @@ def query():
     """List and open queries.
 
     Queries retrieve data from a data source based on a custom query string.
+    They are identified with a unique integer.
     """
 
 
