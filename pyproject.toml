@@ -13,10 +13,16 @@ packages = [
 python = "^3.6"
 requests = "^2.22.0"
 click = "^7.0"
+natsort = "^7.1.1"
+Pygments = "^2.8.0"
+tabulate = "^0.8.9"
+click-help-colors = "^0.9"
+click-didyoumean = "^0.0.3"
 
 [tool.poetry.dev-dependencies]
 
 [tool.poetry.scripts]
+rtb = "redash_toolbelt.cli:main"
 gdpr-scrub = "redash_toolbelt.examples.gdpr_scrub:lookup"
 
 [build-system]
