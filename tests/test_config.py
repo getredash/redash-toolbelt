@@ -1,17 +1,8 @@
 """Tests for config commands"""
 
 import os
-from nose.tools import (
-    eq_,
-    with_setup
-)
-from . import (
-    print_start_stop,
-    run,
-    run_asserting_error,
-    run_completion,
-    FIXTURE_DIR
-)
+from nose.tools import eq_, with_setup
+from . import print_start_stop, run, run_asserting_error, run_completion, FIXTURE_DIR
 
 CURRENT_DIR = os.getcwd()
 
@@ -26,8 +17,8 @@ def _setup():
 @print_start_stop
 def _teardown():
     os.chdir(CURRENT_DIR)
-    if 'RTB_CONFIG_FILE' in os.environ:
-        del os.environ['RTB_CONFIG_FILE']
+    if "RTB_CONFIG_FILE" in os.environ:
+        del os.environ["RTB_CONFIG_FILE"]
 
 
 @with_setup(setup=_setup, teardown=_teardown)
@@ -35,7 +26,7 @@ def _teardown():
 def test_config():
     eq_(
         run("--config-file", MULTIPLE_INI, "config", "list").stdout,
-        "example.eccenca.com\nsecond.eccenca.com\nthird.eccenca.com\n"
+        "example.eccenca.com\nsecond.eccenca.com\nthird.eccenca.com\n",
     )
 
 
@@ -45,7 +36,7 @@ def test_config_from_env():
     os.environ["RTB_CONFIG_FILE"] = MULTIPLE_INI
     eq_(
         run("config", "list").stdout,
-        "example.eccenca.com\nsecond.eccenca.com\nthird.eccenca.com\n"
+        "example.eccenca.com\nsecond.eccenca.com\nthird.eccenca.com\n",
     )
 
 
@@ -63,19 +54,13 @@ def test_config_completion():
     # set config file - complete connection
     eq_(
         run_completion(["--config-file", MULTIPLE_INI, "-c"], "example"),
-        ["example.eccenca.com"]
+        ["example.eccenca.com"],
     )
     eq_(
         run_completion(["--config-file", MULTIPLE_INI, "-c"], "ond"),
-        ["second.eccenca.com"]
+        ["second.eccenca.com"],
     )
     # set config file via env - complete connection
     os.environ["RTB_CONFIG_FILE"] = MULTIPLE_INI
-    eq_(
-        run_completion(["-c"], "ird"),
-        ["third.eccenca.com"]
-    )
-    eq_(
-        run_completion(["--config-file"], ""),
-        ['multiple.ini', 'online.ini']
-    )
+    eq_(run_completion(["-c"], "ird"), ["third.eccenca.com"])
+    eq_(run_completion(["--config-file"], ""), ["multiple.ini", "online.ini"])

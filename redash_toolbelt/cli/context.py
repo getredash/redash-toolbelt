@@ -15,17 +15,12 @@ from tabulate import tabulate
 
 from redash_toolbelt import Redash
 
-from redash_toolbelt.cli.exceptions import (InvalidConfiguration)
+from redash_toolbelt.cli.exceptions import InvalidConfiguration
 from redash_toolbelt.cli.utils import is_completing
 
-KNOWN_CONFIG_KEYS = (
-    'REDASH_BASE_URL',
-    'REDASH_API_TOKEN'
-)
+KNOWN_CONFIG_KEYS = ("REDASH_BASE_URL", "REDASH_API_TOKEN")
 
-KNOWN_SECRET_KEYS = (
-    'REDASH_API_TOKEN'
-)
+KNOWN_SECRET_KEYS = "REDASH_API_TOKEN"
 
 
 class ApplicationContext:
@@ -41,7 +36,7 @@ class ApplicationContext:
         self.config_dir = click.get_app_dir(self.app_name)
         if not path.exists(self.config_dir):
             makedirs(self.config_dir)
-        self.config_file_default = path.join(self.config_dir, 'config.ini')
+        self.config_file_default = path.join(self.config_dir, "config.ini")
         self.config_file = None
         self.config = None
         self.connection_string = None
@@ -64,22 +59,20 @@ class ApplicationContext:
             config_file = self.config_file_default
             if getenv("RDT_CONFIG_FILE") is not None:
                 config_file = getenv("RDT_CONFIG_FILE")
-        self.echo_debug('Set config to ' + config_file)
+        self.echo_debug("Set config to " + config_file)
         self.config_file = config_file
         return self.config_file
 
     def set_connection_string(self, connection_string):
         """Set and return the connection string."""
-        self.echo_debug('Set connection string to ' + str(connection_string))
+        self.echo_debug("Set connection string to " + str(connection_string))
         self.connection_string = connection_string
         return self.connection_string
 
     def set_connection_from_args(self, args):
         """Set connection and config by manually checking args (completion)."""
         # look for environment and load config
-        self.set_config_file(
-            getenv("RTB_CONFIG_FILE", self.config_file)
-        )
+        self.set_config_file(getenv("RTB_CONFIG_FILE", self.config_file))
         # look for config file in arguments and load config
         found_config_file = False
         for arg in args:
@@ -90,9 +83,7 @@ class ApplicationContext:
                 found_config_file = True
         self.config = self.get_config()
         # look for connection in environment and set connection string
-        self.set_connection_string(
-            getenv("RTB_CONNECTION", '')
-        )
+        self.set_connection_string(getenv("RTB_CONNECTION", ""))
         # look for connection in arguments and set connection
         found_connection = False
         for arg in args:
@@ -108,15 +99,14 @@ class ApplicationContext:
         self.config = self.get_config()
         available_connections = self.config.sections()
         self.connection = None
-        if section_string is None or section_string == '':
-            self.echo_debug(
-                "No connection string given, try to take the first one."
-            )
+        if section_string is None or section_string == "":
+            self.echo_debug("No connection string given, try to take the first one.")
             if len(available_connections) == 0:
                 raise InvalidConfiguration(
                     "There is no connection configured in config file {}. "
-                    "Please add one with the config edit command."
-                    .format(self.config_file)
+                    "Please add one with the config edit command.".format(
+                        self.config_file
+                    )
                 )
             if len(available_connections) == 1:
                 section_string = available_connections[0]
@@ -128,10 +118,11 @@ class ApplicationContext:
                 )
         if section_string not in self.config:
             raise InvalidConfiguration(
-                "There is no connection '{}' configured in config '{}'."
-                .format(section_string, self.config_file)
+                "There is no connection '{}' configured in config '{}'.".format(
+                    section_string, self.config_file
+                )
             )
-        self.echo_debug('Use connection config: ' + section_string)
+        self.echo_debug("Use connection config: " + section_string)
         self.connection = self.config[section_string]
         self.configure_api(self.connection)
         return self.connection
@@ -140,14 +131,12 @@ class ApplicationContext:
         """Initialize the redash toolbelt API."""
         api = Redash(
             redash_url=connection["REDASH_BASE_URL"],
-            api_key=connection["REDASH_API_TOKEN"]
+            api_key=connection["REDASH_API_TOKEN"],
         )
         if api.test_credentials():
             self.echo_debug("Credentials successfully tested.")
         else:
-            raise InvalidConfiguration(
-                "Credentials not successfully tested."
-            )
+            raise InvalidConfiguration("Credentials not successfully tested.")
         self.__foo = api
 
     def get_api(self) -> Redash:
@@ -159,10 +148,9 @@ class ApplicationContext:
     def get_config_file(self):
         """Check the connection config file."""
         if not path.exists(self.config_file):
-            self.echo_warning('Empty config created: {}'
-                              .format(self.config_file))
-            open(self.config_file, 'a').close()
-        self.echo_debug('Config loaded: ' + self.config_file)
+            self.echo_warning("Empty config created: {}".format(self.config_file))
+            open(self.config_file, "a").close()
+        self.echo_debug("Config loaded: " + self.config_file)
         return self.config_file
 
     def set_config(self):
@@ -175,7 +163,7 @@ class ApplicationContext:
             config = configparser.RawConfigParser()
             config_file = self.get_config_file()
             # https://stackoverflow.com/questions/1648517/
-            config.read(config_file, encoding='utf-8')
+            config.read(config_file, encoding="utf-8")
         except configparser.Error as error:
             raise InvalidConfiguration(
                 "The following config parser error needs to be fixed with "
@@ -190,27 +178,21 @@ class ApplicationContext:
         # pylint: disable=invalid-name
         if is_completing():
             return
-        click.secho(message,
-                    fg='yellow',
-                    err=True,
-                    nl=nl)
+        click.secho(message, fg="yellow", err=True, nl=nl)
 
     @staticmethod
     def echo_error(message, nl=True, err=True):
         """Output an error message."""
         # pylint: disable=invalid-name
-        click.secho(message,
-                    fg='red',
-                    err=err,
-                    nl=nl)
+        click.secho(message, fg="red", err=err, nl=nl)
 
     def echo_debug(self, message):
         """Output a debug message if --debug is enabled."""
         # pylint: disable=invalid-name
         if self.debug:
-            click.secho('[{}] {}'.format(str(datetime.now()), message),
-                        err=True,
-                        dim=True)
+            click.secho(
+                "[{}] {}".format(str(datetime.now()), message), err=True, dim=True
+            )
 
     def echo_info(self, message, nl=True, fg=""):
         """Output an info message, if not suppressed by --quiet."""
@@ -224,23 +206,17 @@ class ApplicationContext:
         message = highlight(
             json.dumps(object_, indent=2),
             get_lexer_by_name("json"),
-            get_formatter_by_name("terminal")
+            get_formatter_by_name("terminal"),
         )
         self.echo_info(message)
 
     def echo_info_table(self, table, headers):
         """Output a formatted and highlighted table as info message."""
         # generate the un-colored table output
-        lines = tabulate(
-            table,
-            headers
-        ).splitlines()
+        lines = tabulate(table, headers).splitlines()
         # First two lines are header, output colored
         header = "\n".join(lines[:2])
-        self.echo_info(
-            header,
-            fg="yellow"
-        )
+        self.echo_info(header, fg="yellow")
         # after the second line, the body starts
         row_count = len(lines[2:])
         if row_count > 0:
@@ -250,11 +226,7 @@ class ApplicationContext:
     def echo_success(self, message, nl=True):
         """Output success message, if not suppressed by --quiet."""
         # pylint: disable=invalid-name
-        self.echo_info(
-            message,
-            fg="green",
-            nl=nl
-        )
+        self.echo_info(message, fg="green", nl=nl)
 
     @staticmethod
     def echo_result(message, nl=True):

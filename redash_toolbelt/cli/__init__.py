@@ -6,18 +6,9 @@ import traceback
 import click
 
 from redash_toolbelt.cli import completion
-from redash_toolbelt.cli.commands import (
-    config,
-    dashboard,
-    group,
-    query,
-    source,
-    user
-)
+from redash_toolbelt.cli.commands import config, dashboard, group, query, source, user
 from redash_toolbelt.cli.context import CONTEXT
-from redash_toolbelt.cli.exceptions import (
-    InvalidConfiguration
-)
+from redash_toolbelt.cli.exceptions import InvalidConfiguration
 from redash_toolbelt.cli.utils import is_completing
 from redash_toolbelt.cli.commands import CustomGroup
 
@@ -27,64 +18,53 @@ except ImportError:
     VERSION = "SNAPSHOT"
 
 PYTHON_VERSION = "{}.{}.{}".format(
-    sys.version_info.major,
-    sys.version_info.minor,
-    sys.version_info.micro
+    sys.version_info.major, sys.version_info.minor, sys.version_info.micro
 )
 PYTHON_EXPECTED = "3.7"
-PYTHON_GOT = "{}.{}".format(
-    sys.version_info.major,
-    sys.version_info.minor
-)
+PYTHON_GOT = "{}.{}".format(sys.version_info.major, sys.version_info.minor)
 if PYTHON_EXPECTED != PYTHON_GOT:
     # test for environment which indicates that we are in completion mode
     if not is_completing():
         CONTEXT.echo_warning(
             "Warning: Your are running this software under a "
-            "non-tested python environment (expected {}, got {})"
-            .format(PYTHON_EXPECTED, PYTHON_GOT)
+            "non-tested python environment (expected {}, got {})".format(
+                PYTHON_EXPECTED, PYTHON_GOT
+            )
         )
 
 # https://github.com/pallets/click/blob/master/examples/complex/complex/cli.py
-CONTEXT_SETTINGS = dict(
-    auto_envvar_prefix='RTB',
-    help_option_names=['-h', '--help']
-)
+CONTEXT_SETTINGS = dict(auto_envvar_prefix="RTB", help_option_names=["-h", "--help"])
 
 
 @click.group(cls=CustomGroup, context_settings=CONTEXT_SETTINGS)
 @click.option(
-    '-c', '--connection',
+    "-c",
+    "--connection",
     type=click.STRING,
     autocompletion=completion.connections,
-    help='Use a specific connection from the config file.'
+    help="Use a specific connection from the config file.",
 )
 @click.option(
-    '--config-file',
+    "--config-file",
     autocompletion=completion.ini_files,
-    type=click.Path(
-        readable=True,
-        allow_dash=False,
-        dir_okay=False
-    ),
+    type=click.Path(readable=True, allow_dash=False, dir_okay=False),
     default=CONTEXT.config_file_default,
     show_default=True,
-    help='Use this config file instead of the default one.'
+    help="Use this config file instead of the default one.",
 )
 @click.option(
-    '-q', '--quiet',
-    is_flag=True,
-    help='Suppress any non-error info messages.'
+    "-q", "--quiet", is_flag=True, help="Suppress any non-error info messages."
 )
 @click.option(
-    '-d', '--debug',
+    "-d",
+    "--debug",
     is_flag=True,
-    help='Output debug messages and stack traces after errors.'
+    help="Output debug messages and stack traces after errors.",
 )
 @click.version_option(
     version=VERSION,
     message="%(prog)s, version %(version)s, "
-            "running under python {}".format(PYTHON_VERSION)
+    "running under python {}".format(PYTHON_VERSION),
 )
 @click.pass_context
 def cli(ctx, debug, quiet, config_file, connection):  # noqa: D403
@@ -112,12 +92,7 @@ def main():
     """Start the command line interface."""
     try:
         cli()  # pylint: disable=no-value-for-parameter
-    except (
-            ValueError,
-            IOError,
-            NotImplementedError,
-            KeyError
-    ) as error:
+    except (ValueError, IOError, NotImplementedError, KeyError) as error:
         if is_completing():
             # if currently autocompleting -> silently die with exit 1
             sys.exit(1)

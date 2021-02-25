@@ -10,13 +10,9 @@ from redash_toolbelt.cli.commands import CustomCommand, CustomGroup
     "--id-only",
     is_flag=True,
     help="Lists only data source identifier and no labels or other meta data. "
-         "This is useful for piping the ids into other commands."
+    "This is useful for piping the ids into other commands.",
 )
-@click.option(
-    "--raw",
-    is_flag=True,
-    help="Outputs raw JSON response of the API."
-)
+@click.option("--raw", is_flag=True, help="Outputs raw JSON response of the API.")
 @click.pass_obj
 def list_command(app, id_only, raw):
     """List data sources.
@@ -34,16 +30,9 @@ def list_command(app, id_only, raw):
         return
     table = []
     for _ in sorted(all_sources, key=lambda k: k["name"].lower()):
-        row = [
-            _["id"],
-            _["name"],
-            _["type"]
-        ]
+        row = [_["id"], _["name"], _["type"]]
         table.append(row)
-    app.echo_info_table(
-        table,
-        headers=["ID", "Name", "Type"]
-    )
+    app.echo_info_table(table, headers=["ID", "Name", "Type"])
 
 
 @click.command(cls=CustomCommand, name="open")
@@ -52,7 +41,7 @@ def list_command(app, id_only, raw):
     type=click.INT,
     nargs=-1,
     required=True,
-    autocompletion=completion.sources
+    autocompletion=completion.sources,
 )
 @click.pass_obj
 def open_command(app, source_ids):

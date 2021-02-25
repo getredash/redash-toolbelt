@@ -11,10 +11,10 @@ SORT_BY_DESC = 1
 
 
 def _finalize_completion(
-        candidates: list,
-        incomplete: str = '',
-        sort_by: int = SORT_BY_KEY,
-        nat_sort: bool = False
+    candidates: list,
+    incomplete: str = "",
+    sort_by: int = SORT_BY_KEY,
+    nat_sort: bool = False,
 ) -> list:
     """Sort and filter candidates list.
 
@@ -43,40 +43,29 @@ def _finalize_completion(
     if isinstance(candidates[0], str):
         # list of strings filtering and sorting
         filtered_candidates = [
-            element for element in candidates
-            if element.lower().find(incomplete) != -1
+            element for element in candidates if element.lower().find(incomplete) != -1
         ]
         if nat_sort:
-            return natsorted(
-                seq=filtered_candidates,
-                alg=ns.IGNORECASE
-            )
+            return natsorted(seq=filtered_candidates, alg=ns.IGNORECASE)
         # this solves that case-insensitive sorting is not stable in ordering
         # of "equal" keys (https://stackoverflow.com/a/57923460)
-        return sorted(
-            filtered_candidates,
-            key=lambda x: (x.casefold(), x)
-        )
+        return sorted(filtered_candidates, key=lambda x: (x.casefold(), x))
     if isinstance(candidates[0], tuple):
         # list of tuples filtering and sorting
         filtered_candidates = [
-            element for element in candidates
+            element
+            for element in candidates
             if element[0].lower().find(incomplete) != -1
             or element[1].lower().find(incomplete) != -1
         ]
         if nat_sort:
             return natsorted(
-                seq=filtered_candidates,
-                key=lambda k: k[sort_by],
-                alg=ns.IGNORECASE
+                seq=filtered_candidates, key=lambda k: k[sort_by], alg=ns.IGNORECASE
             )
         return sorted(
-            filtered_candidates,
-            key=lambda x: (x[sort_by].casefold(), x[sort_by])
+            filtered_candidates, key=lambda x: (x[sort_by].casefold(), x[sort_by])
         )
-    raise ValueError(
-        "candidates should be a list of strings or a list of tuples."
-    )
+    raise ValueError("candidates should be a list of strings or a list of tuples.")
 
 
 def file_list(incomplete="", suffix="", description=""):
@@ -94,23 +83,16 @@ def file_list(incomplete="", suffix="", description=""):
         prefix = ""
     options = []
     for file_name in os.listdir(directory):
-        if os.path.isfile(file_name) \
-                and file_name.endswith(suffix):
+        if os.path.isfile(file_name) and file_name.endswith(suffix):
             options.append((prefix + file_name, description))
     return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete,
-        sort_by=SORT_BY_KEY
+        candidates=options, incomplete=incomplete, sort_by=SORT_BY_KEY
     )
 
 
 def ini_files(ctx, args, incomplete):
     """Prepare a list of ini files."""
-    return file_list(
-        incomplete=incomplete,
-        suffix=".ini",
-        description="INI file"
-    )
+    return file_list(incomplete=incomplete, suffix=".ini", description="INI file")
 
 
 def connections(ctx, args, incomplete):
@@ -120,10 +102,7 @@ def connections(ctx, args, incomplete):
     options = []
     for section in CONTEXT.config.sections():
         options.append(section)
-    return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete
-    )
+    return _finalize_completion(candidates=options, incomplete=incomplete)
 
 
 def queries(ctx, args, incomplete):
@@ -135,9 +114,7 @@ def queries(ctx, args, incomplete):
     for _ in api.queries():
         options.append((str(_["id"]), _["name"]))
     return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete,
-        sort_by=SORT_BY_DESC
+        candidates=options, incomplete=incomplete, sort_by=SORT_BY_DESC
     )
 
 
@@ -150,9 +127,7 @@ def sources(ctx, args, incomplete):
     for _ in api.data_sources():
         options.append((str(_["id"]), _["name"]))
     return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete,
-        sort_by=SORT_BY_DESC
+        candidates=options, incomplete=incomplete, sort_by=SORT_BY_DESC
     )
 
 
@@ -165,9 +140,7 @@ def dashboards(ctx, args, incomplete):
     for _ in api.dashboards():
         options.append((str(_["slug"]), _["name"]))
     return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete,
-        sort_by=SORT_BY_DESC
+        candidates=options, incomplete=incomplete, sort_by=SORT_BY_DESC
     )
 
 
@@ -180,9 +153,7 @@ def users(ctx, args, incomplete):
     for _ in api.users():
         options.append((str(_["id"]), _["name"]))
     return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete,
-        sort_by=SORT_BY_DESC
+        candidates=options, incomplete=incomplete, sort_by=SORT_BY_DESC
     )
 
 
@@ -195,7 +166,5 @@ def groups(ctx, args, incomplete):
     for _ in api.groups():
         options.append((str(_["id"]), _["name"]))
     return _finalize_completion(
-        candidates=options,
-        incomplete=incomplete,
-        sort_by=SORT_BY_DESC
+        candidates=options, incomplete=incomplete, sort_by=SORT_BY_DESC
     )

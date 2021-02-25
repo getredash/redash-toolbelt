@@ -32,7 +32,7 @@ class CustomGroup(HelpColorsGroup, DYMGroup):
                 "query": COLOR_FOR_COMMAND_GROUPS,
                 "source": COLOR_FOR_COMMAND_GROUPS,
                 "user": COLOR_FOR_COMMAND_GROUPS,
-            }
+            },
         )
         super().__init__(*args, **kwargs)
 
@@ -46,6 +46,6 @@ class CustomCommand(HelpColorsCommand):
 
     def __init__(self, *args, **kwargs):
         """Init a custom click command.."""
-        kwargs.setdefault('help_headers_color', COLOR_FOR_HEADERS)
-        kwargs.setdefault('help_options_color', COLOR_FOR_OPTIONS)
+        kwargs.setdefault("help_headers_color", COLOR_FOR_HEADERS)
+        kwargs.setdefault("help_options_color", COLOR_FOR_OPTIONS)
         super().__init__(*args, **kwargs)

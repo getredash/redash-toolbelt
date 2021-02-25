@@ -1,10 +1,6 @@
 import os
 import time
-from nose.tools import (
-    make_decorator,
-    eq_,
-    assert_greater_equal
-)
+from nose.tools import make_decorator, eq_, assert_greater_equal
 from click.testing import CliRunner
 from click._bashcomplete import get_choices
 from redash_toolbelt.cli import cli
@@ -19,6 +15,7 @@ CLI_RUNNER = CliRunner()
 
 def print_start_stop(function):
     """decorator to output visible marks for better log viewing"""
+
     @make_decorator(function)
     def wrap(*args):
         print(">>>>>>>>>> " + function.__name__ + " started")
@@ -30,10 +27,12 @@ def print_start_stop(function):
         print(">")
         print(">")
         print(
-            ">>>>>>>>>> {:s} finished (took {:.3f} ms)"
-            .format(function.__name__, (end_time - start_time) * 1000.0)
+            ">>>>>>>>>> {:s} finished (took {:.3f} ms)".format(
+                function.__name__, (end_time - start_time) * 1000.0
+            )
         )
         return return_value
+
     return wrap
 
 
@@ -45,7 +44,7 @@ def run_completion(args, incomplete):
     print(">>> rtb completion started")
     print(">>> COMPLETION Array: {}  << {}".format(str(args), incomplete))
     print(">>> COMPLETION String: 'rtb {} {}'".format(" ".join(args), incomplete))
-    completions = get_choices(cli, 'rtb', args, incomplete)
+    completions = get_choices(cli, "rtb", args, incomplete)
     print(completions)
     return [c[0] for c in completions]
 
@@ -73,7 +72,8 @@ def run(*argv):
     eq_(
         result.exit_code,
         0,
-        "exit code should be 0 (but was {})".format(result.exit_code))
+        "exit code should be 0 (but was {})".format(result.exit_code),
+    )
     return result
 
 
@@ -88,7 +88,7 @@ def run_asserting_error(*argv):
     assert_greater_equal(
         result.exit_code,
         1,
-        "exit code should be 1 or more (but was {})".format(result.exit_code)
+        "exit code should be 1 or more (but was {})".format(result.exit_code),
     )
     return result
 

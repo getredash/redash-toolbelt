@@ -10,13 +10,9 @@ from redash_toolbelt.cli.commands import CustomCommand, CustomGroup
     "--id-only",
     is_flag=True,
     help="Lists only data source identifier and no labels or other meta data. "
-         "This is useful for piping the ids into other commands."
+    "This is useful for piping the ids into other commands.",
 )
-@click.option(
-    "--raw",
-    is_flag=True,
-    help="Outputs raw JSON response of the API."
-)
+@click.option("--raw", is_flag=True, help="Outputs raw JSON response of the API.")
 @click.pass_obj
 def list_command(app, id_only, raw):
     """List users.
@@ -34,25 +30,14 @@ def list_command(app, id_only, raw):
         return
     table = []
     for _ in sorted(all_users, key=lambda k: k["name"].lower()):
-        row = [
-            _["id"],
-            _["name"],
-            _["email"]
-        ]
+        row = [_["id"], _["name"], _["email"]]
         table.append(row)
-    app.echo_info_table(
-        table,
-        headers=["ID", "Name", "Email"]
-    )
+    app.echo_info_table(table, headers=["ID", "Name", "Email"])
 
 
 @click.command(cls=CustomCommand, name="open")
 @click.argument(
-    "USER_IDS",
-    type=click.INT,
-    nargs=-1,
-    required=True,
-    autocompletion=completion.users
+    "USER_IDS", type=click.INT, nargs=-1, required=True, autocompletion=completion.users
 )
 @click.pass_obj
 def open_command(app, user_ids):
