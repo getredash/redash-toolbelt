@@ -91,7 +91,7 @@ class Redash(object):
 
     def data_sources(self):
         """GET api/data_sources
-        returns array of all data_sources (no details, use data_soruce(id) to get those)"""
+        returns array of all data_sources (no details, use data_source(id) to get those)"""
         return self._get("api/data_sources").json()
 
     def data_source(self, data_source_id):

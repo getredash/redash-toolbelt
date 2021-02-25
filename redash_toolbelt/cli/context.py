@@ -150,7 +150,7 @@ class ApplicationContext:
             )
         self.__foo = api
 
-    def get_api(self):
+    def get_api(self) -> Redash:
         """Return initialized Redash API object."""
         self.set_connection(self.connection_string)
         self.configure_api(self.connection)

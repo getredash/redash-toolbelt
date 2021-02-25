@@ -24,7 +24,7 @@ def list_command(app, id_only, raw):
     This command lists all queries from a redash deployment.
     """
     api = app.get_api()
-    all_queries = api.queries()
+    all_queries = api.da()
     if id_only:
         for _ in sorted(all_queries, key=lambda k: k["id"]):
             app.echo_info(str(_["id"]))
@@ -61,15 +61,16 @@ def open_command(app, query_ids):
     the query editor in your browser (e.g. in order to change them).
     The command accepts multiple query IDs.
     """
+    api = app.get_api()
     for _ in query_ids:
-        open_query_uri = app.api.redash_url + "/queries/" + str(_)
+        open_query_uri = api.redash_url + "/queries/" + str(_)
         app.echo_debug("Open {}: {}".format(_, open_query_uri))
         click.launch(open_query_uri)
 
 
 @click.group(cls=CustomGroup)
 def query():
-    """List queries.
+    """List and open queries.
 
     Queries retrieve data from a data source based on a custom query string.
     """

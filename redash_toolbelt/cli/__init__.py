@@ -8,7 +8,8 @@ import click
 from redash_toolbelt.cli import completion
 from redash_toolbelt.cli.commands import (
     config,
-    query
+    query,
+    source
 )
 from redash_toolbelt.cli.context import CONTEXT
 from redash_toolbelt.cli.exceptions import (
@@ -98,6 +99,7 @@ def cli(ctx, debug, quiet, config_file, connection):  # noqa: D403
 
 cli.add_command(config.config)
 cli.add_command(query.query)
+cli.add_command(source.source)
 
 
 def main():

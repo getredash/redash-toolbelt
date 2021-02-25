@@ -26,28 +26,9 @@ class CustomGroup(HelpColorsGroup, DYMGroup):
         kwargs.setdefault(
             "help_options_custom_colors",
             {
-                "bootstrap": COLOR_FOR_WRITING_COMMANDS,
-                "showcase": COLOR_FOR_WRITING_COMMANDS,
-                "delete": COLOR_FOR_WRITING_COMMANDS,
-                "upload": COLOR_FOR_WRITING_COMMANDS,
-                "import": COLOR_FOR_WRITING_COMMANDS,
-                "create": COLOR_FOR_WRITING_COMMANDS,
-                "execute": COLOR_FOR_WRITING_COMMANDS,
-                "io": COLOR_FOR_WRITING_COMMANDS,
-                "install": COLOR_FOR_WRITING_COMMANDS,
-                "uninstall": COLOR_FOR_WRITING_COMMANDS,
-                "reload": COLOR_FOR_WRITING_COMMANDS,
-                "update": COLOR_FOR_WRITING_COMMANDS,
-                "admin": COLOR_FOR_COMMAND_GROUPS,
                 "config": COLOR_FOR_COMMAND_GROUPS,
-                "dataset": COLOR_FOR_COMMAND_GROUPS,
-                "graph": COLOR_FOR_COMMAND_GROUPS,
-                "project": COLOR_FOR_COMMAND_GROUPS,
                 "query": COLOR_FOR_COMMAND_GROUPS,
-                "vocabulary": COLOR_FOR_COMMAND_GROUPS,
-                "workflow": COLOR_FOR_COMMAND_GROUPS,
-                "workspace": COLOR_FOR_COMMAND_GROUPS,
-                "cache": COLOR_FOR_COMMAND_GROUPS,
+                "source": COLOR_FOR_COMMAND_GROUPS,
             }
         )
         super().__init__(*args, **kwargs)
