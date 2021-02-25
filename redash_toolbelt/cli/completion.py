@@ -130,8 +130,9 @@ def queries(ctx, args, incomplete):
     """Prepare a list of queries."""
     # since ctx does not have an obj here, we re-create the object
     CONTEXT.set_connection_from_args(args)
+    api = CONTEXT.get_api()
     options = []
-    for _ in CONTEXT.api.paginate(CONTEXT.api.queries):
+    for _ in api.queries():
         options.append((str(_["id"]), _["name"]))
     return _finalize_completion(
         candidates=options,

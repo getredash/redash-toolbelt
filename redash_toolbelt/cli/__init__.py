@@ -92,13 +92,8 @@ def cli(ctx, debug, quiet, config_file, connection):  # noqa: D403
     ctx.obj.set_quiet(quiet)
     ctx.obj.set_debug(debug)
     ctx.obj.set_config_file(config_file)
-    try:
-        ctx.obj.set_connection(connection)
-    except InvalidConfiguration as error:
-        # if config is broken still allow for "config edit"
-        # means: do not forward this exception if "config edit"
-        if " ".join(sys.argv).find("config edit") == -1:
-            raise error
+    ctx.obj.set_config()
+    ctx.obj.set_connection_string(connection)
 
 
 cli.add_command(config.config)

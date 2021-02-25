@@ -41,19 +41,12 @@ class ApplicationContext:
         self.config_dir = click.get_app_dir(self.app_name)
         if not path.exists(self.config_dir):
             makedirs(self.config_dir)
-        self.config_file = self.set_config_file(
-            path.join(
-                self.config_dir,
-                'config.ini'
-            )
-        )
-        self.config_file_default = path.join(
-            self.config_dir,
-            'config.ini'
-        )
+        self.config_file_default = path.join(self.config_dir, 'config.ini')
+        self.config_file = None
         self.config = None
+        self.connection_string = None
         self.connection = None
-        self.api = None
+        self.__foo = None
 
     def set_debug(self, debug=False):
         """Set debug state."""
@@ -67,9 +60,19 @@ class ApplicationContext:
 
     def set_config_file(self, config_file):
         """Set and return the context config file."""
+        if config_file is None:
+            config_file = self.config_file_default
+            if getenv("RDT_CONFIG_FILE") is not None:
+                config_file = getenv("RDT_CONFIG_FILE")
         self.echo_debug('Set config to ' + config_file)
         self.config_file = config_file
         return self.config_file
+
+    def set_connection_string(self, connection_string):
+        """Set and return the connection string."""
+        self.echo_debug('Set connection string to ' + str(connection_string))
+        self.connection_string = connection_string
+        return self.connection_string
 
     def set_connection_from_args(self, args):
         """Set connection and config by manually checking args (completion)."""
@@ -86,15 +89,15 @@ class ApplicationContext:
             if arg == "--config-file":
                 found_config_file = True
         self.config = self.get_config()
-        # look for connection in environment and set connection
-        self.set_connection(
+        # look for connection in environment and set connection string
+        self.set_connection_string(
             getenv("RTB_CONNECTION", '')
         )
         # look for connection in arguments and set connection
         found_connection = False
         for arg in args:
             if found_connection is True:
-                self.set_connection(arg)
+                self.set_connection_string(arg)
                 return
             if arg in ("-c", "--connection"):
                 found_connection = True
@@ -103,10 +106,26 @@ class ApplicationContext:
     def set_connection(self, section_string):
         """Set connection config section based on section string."""
         self.config = self.get_config()
+        available_connections = self.config.sections()
         self.connection = None
         if section_string is None or section_string == '':
-            self.echo_debug("No connection given.")
-            return None
+            self.echo_debug(
+                "No connection string given, try to take the first one."
+            )
+            if len(available_connections) == 0:
+                raise InvalidConfiguration(
+                    "There is no connection configured in config file {}. "
+                    "Please add one with the config edit command."
+                    .format(self.config_file)
+                )
+            if len(available_connections) == 1:
+                section_string = available_connections[0]
+            else:
+                section_string = available_connections[0]
+                self.echo_warning(
+                    "No explicit connection given - "
+                    "will use the first one: {}".format(section_string)
+                )
         if section_string not in self.config:
             raise InvalidConfiguration(
                 "There is no connection '{}' configured in config '{}'."
@@ -129,8 +148,13 @@ class ApplicationContext:
             raise InvalidConfiguration(
                 "Credentials not successfully tested."
             )
-        self.api = api
-        return api
+        self.__foo = api
+
+    def get_api(self):
+        """Return initialized Redash API object."""
+        self.set_connection(self.connection_string)
+        self.configure_api(self.connection)
+        return self.__foo
 
     def get_config_file(self):
         """Check the connection config file."""
@@ -140,6 +164,10 @@ class ApplicationContext:
             open(self.config_file, 'a').close()
         self.echo_debug('Config loaded: ' + self.config_file)
         return self.config_file
+
+    def set_config(self):
+        """Setup config object based on current configuration."""
+        self.config = self.get_config()
 
     def get_config(self):
         """Parse the app connections config."""
