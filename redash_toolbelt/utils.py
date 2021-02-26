@@ -1,9 +1,9 @@
 import json
 
 
-def save_dict_as_json_file(dict, filename, msg=None):
+def save_dict_as_json_file(dict_, filename, msg=None):
     with open(filename, 'w') as f:
-        f.write(json.dumps(dict))
+        f.write(json.dumps(dict_))
         if msg is not None:
             print(msg)
 
