@@ -132,3 +132,4 @@ redash/postgres-data/
 tmp/
 cover
 cover.xml
+coverage-badge.svg

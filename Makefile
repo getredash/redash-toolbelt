@@ -1,11 +1,7 @@
 .DEFAULT_GOAL := help
 
-## run tests locally
-check-local:
-	tox
-
-## run tests dockerized
-check:
+## run all tests dockerized on all configured environments
+check: redash-start
 	docker container run --mount src=${PWD},target=/src,type=bind -i -t --rm sawkita/tox:all /bin/bash -c "cd /src && tox"
 
 ## cleanup build artifacts
