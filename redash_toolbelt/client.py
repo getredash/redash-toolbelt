@@ -58,9 +58,30 @@ class Redash(object):
         archives a query"""
         return self._delete("api/queries/{}".format(query_id)).json()
 
-    def queries(self):
-        """return array of all queries (no details, use query(id) to get those)"""
-        return self._paginate(self.queries_page)
+    def queries(self, tags=None, data_source_id=None):
+        """Return a list of queries (no details, use query(id) to get those)
+
+        Provide a list of tags to filter for those that are tags with all provided tags.
+
+        Provide a data_source_id to filter for those that use this source."""
+        queries = self._paginate(self.queries_page)
+        if tags is None and data_source_id is None:
+            return queries
+        else:
+            queries_ = []
+            if tags is not None:
+                queries_ = list(filter(lambda qry: set(tags).issubset(qry['tags']), queries))
+                queries = queries_
+            if data_source_id is not None:
+                queries_ = list(filter(lambda qry: qry['data_source_id'] == data_source_id, queries))
+            return queries_
+
+    def query_tags(self):
+        """returns a sorted set(list) of tags used with your queries"""
+        tags = []
+        for query in self.queries():
+            tags += query['tags']
+        return sorted(set(tags))
 
     def queries_page(self, page=1, page_size=25):
         """GET api/queries
@@ -115,9 +136,15 @@ class Redash(object):
         return detailed representation of a user"""
         return self._get("api/users/{}".format(user_id)).json()
 
-    def dashboards(self):
-        """return array of all dashboards (no details, use dashboard(slug) to get those)"""
-        return self._paginate(self.dashboards_page)
+    def dashboards(self, tags=None):
+        """Returns a list of dashboards (no details, use dashboard(slug) to get those)
+
+        Provide a list of tags to filter for those that are taged with all provided tags."""
+        dashboards = self._paginate(self.dashboards_page)
+        if tags is None:
+            return dashboards
+        else:
+            return list(filter(lambda db: set(tags).issubset(db['tags']), dashboards))
 
     def dashboards_page(self, page=1, page_size=25):
         """GET api/dashboards
@@ -130,6 +157,13 @@ class Redash(object):
         """GET api/dashboards/{slug}
         return detailed representation of a dashboard"""
         return self._get("api/dashboards/{}".format(slug)).json()
+
+    def dashboard_tags(self):
+        """returns a sorted set(list) of tags used with your dashboards"""
+        tags = []
+        for dashboard in self.dashboards():
+            tags += dashboard['tags']
+        return sorted(set(tags))
 
     def create_dashboard(self, name):
         """POST api/dashboards create a new empty dashboard with given name.
@@ -183,7 +217,7 @@ class Redash(object):
     def scheduled_queries(self):
         """Loads all queries and returns only the scheduled ones."""
         queries = self._paginate(self.queries_page)
-        return filter(lambda query: query["schedule"] is not None, queries)
+        return list(filter(lambda query: query["schedule"] is not None, queries))
 
     @staticmethod
     def _paginate(resource):
