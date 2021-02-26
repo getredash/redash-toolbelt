@@ -1,8 +1,10 @@
 """Query commands."""
 import click
+import os
 
 import redash_toolbelt.cli.completion as completion
 from redash_toolbelt.cli.commands import CustomCommand, CustomGroup
+from redash_toolbelt.utils import save_dict_as_json_file
 
 
 @click.command(cls=CustomCommand, name="list")
