@@ -1,0 +1,8 @@
+PYTHONUNBUFFERED=0
+REDASH_LOG_LEVEL=INFO
+REDASH_REDIS_URL=redis://redis:6379/0
+POSTGRES_PASSWORD=testerpassword
+REDASH_COOKIE_SECRET=testerpassword
+REDASH_SECRET_KEY=testerpassword
+REDASH_DATABASE_URL=postgresql://postgres:testerpassword@postgres/postgres
+

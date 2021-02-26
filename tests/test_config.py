@@ -63,4 +63,4 @@ def test_config_completion():
     # set config file via env - complete connection
     os.environ["RTB_CONFIG_FILE"] = MULTIPLE_INI
     eq_(run_completion(["-c"], "ird"), ["third.eccenca.com"])
-    eq_(run_completion(["--config-file"], ""), ["multiple.ini", "online.ini"])
+    eq_(run_completion(["--config-file"], ""), ["multiple.ini", "testenv.ini"])

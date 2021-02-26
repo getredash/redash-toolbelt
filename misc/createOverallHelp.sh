@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# @(#) Runs rtb for all command groups and commands and outputs overall help texts
+
 set -euo pipefail; export FS=$'\n\t'
 
 SOURCEDIR="redash_toolbelt/cli/commands"

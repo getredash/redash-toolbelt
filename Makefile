@@ -9,6 +9,20 @@ clean:
 dist-clean: clean
 	git clean -d --force -X
 
+## stop and cleanup redash orchestration and repository
+redash-purge:
+	cd redash && docker-compose down || exit 0
+	cd redash && docker-compose rm -f || exit 0
+	cd redash && rm -rf postgres-data || exit 0
+
+redash-prepare: redash-purge
+	cd redash && tar xjf postgres-data.tar.bz2
+
+## start redash orchestration
+redash-start: redash-prepare
+	cd redash && docker-compose up -d || exit 0
+	cd redash && ../misc/waitUntilReady.sh
+
 ## update cli reference README.md
 cli-update-reference-manual:
 	misc/createOverallHelp.sh >redash_toolbelt/cli/README.md
