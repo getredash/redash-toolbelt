@@ -20,9 +20,9 @@ except ImportError:
 PYTHON_VERSION = "{}.{}.{}".format(
     sys.version_info.major, sys.version_info.minor, sys.version_info.micro
 )
-PYTHON_EXPECTED = "3.7"
+PYTHON_EXPECTED = ["3.7", "3.8"]
 PYTHON_GOT = "{}.{}".format(sys.version_info.major, sys.version_info.minor)
-if PYTHON_EXPECTED != PYTHON_GOT:
+if PYTHON_GOT not in PYTHON_EXPECTED:
     # test for environment which indicates that we are in completion mode
     if not is_completing():
         CONTEXT.echo_warning(
