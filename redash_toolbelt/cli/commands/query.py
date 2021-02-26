@@ -92,6 +92,7 @@ def export_command(app, to_file, output_dir, all_, query_ids):
 
     This command exports selected or all querie(s).
     """
+    api = app.get_api()
     q_ids = []
     if all_:
         all_queries = app.api.queries()
@@ -100,8 +101,8 @@ def export_command(app, to_file, output_dir, all_, query_ids):
         q_ids = query_ids
 
     for qid in q_ids:
-        qry = app.api.query(qid)
-        if to_file is not None or output_dir is not None:
+        qry = api.query(qid)
+        if to_file or output_dir is not None:
             filename = 'query_{}.json'.format(qry['id'])
             if output_dir is not None:
                 # create directory
