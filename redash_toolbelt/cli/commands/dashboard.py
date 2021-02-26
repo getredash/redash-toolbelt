@@ -1,8 +1,10 @@
 """Dashboard commands."""
 import click
+import os
 
 import redash_toolbelt.cli.completion as completion
 from redash_toolbelt.cli.commands import CustomCommand, CustomGroup
+from redash_toolbelt.utils import save_dict_as_json_file
 
 
 @click.command(cls=CustomCommand, name="list")
@@ -58,6 +60,65 @@ def open_command(app, dashboard_slugs):
         click.launch(open_query_uri)
 
 
+@click.command(cls=CustomCommand, name="export")
+@click.option(
+    "--to-file",
+    is_flag=True,
+    help="Writes the json export into individual files. FIlenames follow the pattern: 'dashboard_{id}_{slug}.json'."
+)
+@click.option(
+    "--output-dir",
+    type=click.Path(
+        writable=True,
+        file_okay=False
+    ),
+    help="Export to this directory. Filenames follow the pattern: '<output-dir>/dashboard_{id}_{slug}.json'"
+)
+@click.option(
+    "-a", "--all", "all_",
+    is_flag=True,
+    help="Exports all queries."
+)
+@click.argument(
+    "DASHBOARD_SLUGS",
+    type=click.STRING,
+    nargs=-1,
+    required=True,
+    autocompletion=completion.dashboards,
+)
+@click.pass_obj
+def export_command(app, to_file, output_dir, all_, dashboard_slugs):
+    """Export dashboard(s).
+
+    This command exports selected or all dashbopard(s).
+    """
+    api = app.get_api()
+    db_slugs = []
+    if all_:
+        all_dashboards = api.dashboards()
+        db_slugs = [db['slug'] for db in all_dashboards]
+    else:
+        db_slugs = dashboard_slugs
+
+    for slug in db_slugs:
+        db = api.dashboard(slug)
+        if to_file or output_dir is not None:
+            filename = 'dashboard_{}_{}.json'.format(db['id'], slug)
+            if output_dir is not None:
+                # create directory
+                if not os.path.exists(output_dir):
+                    app.echo_warning("Output directory does not exist: will create it.")
+                    os.makedirs(output_dir)
+                # join with given output directory and normalize full path
+                filename = os.path.normpath(os.path.join(output_dir, filename))
+            save_dict_as_json_file(db, filename)
+            app.echo_info(
+                "dashboard id: {id}, slug: {slug}, name: {name} was exported to: {file}".format(
+                    id=db['id'], slug=slug, name=db['name'], file=filename))
+        else:
+            app.echo_info_json(db)
+
+
 @click.group(cls=CustomGroup)
 def dashboard():
     """List and open dashboards.
@@ -70,3 +131,4 @@ def dashboard():
 
 dashboard.add_command(list_command)
 dashboard.add_command(open_command)
+dashboard.add_command(export_command)

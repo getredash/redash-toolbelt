@@ -88,14 +88,14 @@ def open_command(app, query_ids):
 )
 @click.pass_obj
 def export_command(app, to_file, output_dir, all_, query_ids):
-    """Export queries.
+    """Export querie(s).
 
     This command exports selected or all querie(s).
     """
     api = app.get_api()
     q_ids = []
     if all_:
-        all_queries = app.api.queries()
+        all_queries = api.queries()
         q_ids = [q['id'] for q in all_queries ]
     else:
         q_ids = query_ids
