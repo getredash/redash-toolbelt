@@ -9,7 +9,7 @@ class Redash(object):
 
     def test_credentials(self):
         try:
-            response = self._get("api/session")
+            self._get("api/session")
             return True
         except requests.exceptions.HTTPError:
             return False
