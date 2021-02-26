@@ -1,5 +1,13 @@
 .DEFAULT_GOAL := help
 
+## run tests locally
+check-local:
+	tox
+
+## run tests dockerized
+check:
+	docker container run --mount src=${PWD},target=/src,type=bind -i -t --rm sawkita/tox:all /bin/bash -c "cd /src && tox"
+
 ## cleanup build artifacts
 clean:
 	rm -rf cover .coverage cover.xml .tox/ nosetests* dist build *.egg-info
