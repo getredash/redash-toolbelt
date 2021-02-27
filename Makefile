@@ -19,6 +19,11 @@ redash-purge:
 	cd redash && docker-compose rm -f || exit 0
 	cd redash && rm -rf postgres-data || exit 0
 
+## saves the current state of the postgres to postgres-data.tar.bz2
+package-postgres-data:
+	cd redash && tar -cvjSf postgres-data.tar.bz2 postgres-data
+
+
 redash-prepare: redash-purge
 	cd redash && tar xjf postgres-data.tar.bz2
 
