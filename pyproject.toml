@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "redash_toolbelt"
-version = "0.1.3"
+version = "0.1.4"
 description = "Redash API client and tools to manage your instance."
 authors = ["Redash Maintainers"]
 license = "BSD-2-Clause"
@@ -20,6 +20,7 @@ click = "^7.0"
 gdpr-scrub = "redash_toolbelt.examples.gdpr_scrub:lookup"
 find-tables = "redash_toolbelt.examples.find_table_names:main"
 clone-dashboard-and-queries = "redash_toolbelt.examples.clone_dashboard_and_queries:main"
+export-queries = "redash_toolbelt.examples.query_export:main"
 
 [build-system]
 requires = ["poetry>=0.12"]
