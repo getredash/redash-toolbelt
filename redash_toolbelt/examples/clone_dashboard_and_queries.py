@@ -64,7 +64,6 @@ def duplicate(client, slug, prefix=None):
 @click.command()
 @click.argument("redash_host")
 @click.argument("slug")
-@click.argument("prefix")
 @click.option(
     "--api-key",
     "api_key",
@@ -73,7 +72,8 @@ def duplicate(client, slug, prefix=None):
     prompt="API Key",
     help="User API Key",
 )
-def main(redash_host, slug, prefix="", api_key):
+@click.argument("prefix")
+def main(redash_host, slug, api_key, prefix=""):
     """Calls the duplicate function using Click commands"""
 
     client = Redash(redash_host, api_key)
