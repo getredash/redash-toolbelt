@@ -50,4 +50,8 @@ services:
     links:
       - server:redash
     restart: always
-
+  tox:
+    image: sawkita/tox:all
+    volumes:
+      - ..:/src
+      # command: /bin/bash -c "cd /src && tox"

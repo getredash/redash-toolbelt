@@ -1,8 +1,12 @@
 .DEFAULT_GOAL := help
 
+.PHONY: check
 ## run all tests dockerized on all configured environments
-check: redash-start
-	docker container run --mount src=${PWD},target=/src,type=bind -i -t --rm sawkita/tox:all /bin/bash -c "cd /src && tox"
+check: redash-start tox redash-purge
+
+## run dockerized tox
+tox:
+	cd redash && docker-compose run tox /bin/bash -c "cd /src && tox"
 
 ## cleanup build artifacts
 clean:

@@ -9,6 +9,7 @@ from redash_toolbelt.cli import cli
 CURRENT_FILE_PATH = os.path.dirname(os.path.realpath(__file__))
 PROJECT_ROOT = os.path.join(CURRENT_FILE_PATH, "..")
 FIXTURE_DIR = os.path.join(CURRENT_FILE_PATH, "fixtures")
+TEST_ENV_CONFIG = os.path.join(FIXTURE_DIR, "config", "testenv.ini")
 
 CLI_RUNNER = CliRunner()
 
@@ -51,6 +52,10 @@ def run_completion(args, incomplete):
 
 def _run(*argv):
     """wraps the CliRunner"""
+    if os.environ.get('RTB_CONFIG_FILE') is None:
+        os.environ['RTB_CONFIG_FILE'] = TEST_ENV_CONFIG
+    if os.environ.get('RTB_CONNECTION') is None:
+        os.environ['RTB_CONNECTION'] = "testenv"
     command = []
     for arg in argv:
         command.append(arg)
