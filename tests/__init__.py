@@ -52,10 +52,10 @@ def run_completion(args, incomplete):
 
 def _run(*argv):
     """wraps the CliRunner"""
-    if os.environ.get('RTB_CONFIG_FILE') is None:
-        os.environ['RTB_CONFIG_FILE'] = TEST_ENV_CONFIG
-    if os.environ.get('RTB_CONNECTION') is None:
-        os.environ['RTB_CONNECTION'] = "testenv"
+    if os.environ.get("RTB_CONFIG_FILE") is None:
+        os.environ["RTB_CONFIG_FILE"] = TEST_ENV_CONFIG
+    if os.environ.get("RTB_CONNECTION") is None:
+        os.environ["RTB_CONNECTION"] = "testenv"
     command = []
     for arg in argv:
         command.append(arg)

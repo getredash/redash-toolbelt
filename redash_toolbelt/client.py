@@ -70,17 +70,21 @@ class Redash(object):
         else:
             queries_ = []
             if tags is not None:
-                queries_ = list(filter(lambda qry: set(tags).issubset(qry['tags']), queries))
+                queries_ = list(
+                    filter(lambda qry: set(tags).issubset(qry["tags"]), queries)
+                )
                 queries = queries_
             if data_source_id is not None:
-                queries_ = list(filter(lambda qry: qry['data_source_id'] == data_source_id, queries))
+                queries_ = list(
+                    filter(lambda qry: qry["data_source_id"] == data_source_id, queries)
+                )
             return queries_
 
     def query_tags(self):
         """returns a sorted set(list) of tags used with your queries"""
         tags = []
         for query in self.queries():
-            tags += query['tags']
+            tags += query["tags"]
         return sorted(set(tags))
 
     def queries_page(self, page=1, page_size=25):
@@ -144,7 +148,7 @@ class Redash(object):
         if tags is None:
             return dashboards
         else:
-            return list(filter(lambda db: set(tags).issubset(db['tags']), dashboards))
+            return list(filter(lambda db: set(tags).issubset(db["tags"]), dashboards))
 
     def dashboards_page(self, page=1, page_size=25):
         """GET api/dashboards
@@ -162,7 +166,7 @@ class Redash(object):
         """returns a sorted set(list) of tags used with your dashboards"""
         tags = []
         for dashboard in self.dashboards():
-            tags += dashboard['tags']
+            tags += dashboard["tags"]
         return sorted(set(tags))
 
     def create_dashboard(self, name):

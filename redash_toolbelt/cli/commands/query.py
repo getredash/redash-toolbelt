@@ -64,27 +64,20 @@ def open_command(app, query_ids):
 @click.option(
     "--to-file",
     is_flag=True,
-    help="Writes the json export into individual files. FIlenames follow the pattern: 'query_{id}.json'."
+    help="Writes the json export into individual files. FIlenames follow the pattern: 'query_{id}.json'.",
 )
 @click.option(
     "--output-dir",
-    type=click.Path(
-        writable=True,
-        file_okay=False
-    ),
-    help="Export to this directory. Filenames follow the pattern: '<output-dir>/query_{id}.json'"
+    type=click.Path(writable=True, file_okay=False),
+    help="Export to this directory. Filenames follow the pattern: '<output-dir>/query_{id}.json'",
 )
-@click.option(
-    "-a", "--all", "all_",
-    is_flag=True,
-    help="Exports all queries."
-)
+@click.option("-a", "--all", "all_", is_flag=True, help="Exports all queries.")
 @click.argument(
     "QUERY_IDS",
     type=click.INT,
     nargs=-1,
     required=False,
-    autocompletion=completion.queries
+    autocompletion=completion.queries,
 )
 @click.pass_obj
 def export_command(app, to_file, output_dir, all_, query_ids):
@@ -96,14 +89,14 @@ def export_command(app, to_file, output_dir, all_, query_ids):
     q_ids = []
     if all_:
         all_queries = api.queries()
-        q_ids = [q['id'] for q in all_queries ]
+        q_ids = [q["id"] for q in all_queries]
     else:
         q_ids = query_ids
 
     for qid in q_ids:
         qry = api.query(qid)
         if to_file or output_dir is not None:
-            filename = 'query_{}.json'.format(qry['id'])
+            filename = "query_{}.json".format(qry["id"])
             if output_dir is not None:
                 # create directory
                 if not os.path.exists(output_dir):
@@ -113,7 +106,10 @@ def export_command(app, to_file, output_dir, all_, query_ids):
                 filename = os.path.normpath(os.path.join(output_dir, filename))
             save_dict_as_json_file(qry, filename)
             app.echo_info(
-                "query id: {id}, name: {name} was exported to: {file}".format(id=qid, name=qry['name'], file=filename))
+                "query id: {id}, name: {name} was exported to: {file}".format(
+                    id=qid, name=qry["name"], file=filename
+                )
+            )
         else:
             app.echo_info_json(qry)
 

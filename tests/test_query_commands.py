@@ -12,15 +12,9 @@ from nose.tools import (
     assert_less,
     with_setup,
     nottest,
-    assert_is_instance
+    assert_is_instance,
 )
-from . import (
-    print_start_stop,
-    run,
-    run_asserting_error,
-    run_completion,
-    FIXTURE_DIR
-)
+from . import print_start_stop, run, run_asserting_error, run_completion, FIXTURE_DIR
 
 
 @print_start_stop
@@ -40,44 +34,26 @@ def test_query_list():
     eq_(
         run("query", "list", "--id-only").line_count,
         expected_query_count,
-        "there should be 3 query ids here"
+        "there should be 3 query ids here",
     )
     eq_(
         run("query", "list").line_count,
         expected_query_count + 2,
-        "there should be 3 query ids and 2 table header rows here"
+        "there should be 3 query ids and 2 table header rows here",
     )
-    assert_in(
-        "Products",
-        run("query", "list").stdout
-    )
-    assert_in(
-        "Value",
-        run("query", "list").stdout
-    )
+    assert_in("Products", run("query", "list").stdout)
+    assert_in("Value", run("query", "list").stdout)
     assert_is_instance(
         json.loads(run("query", "list", "--raw").stdout),
         list,
-        "raw output should be a json list"
+        "raw output should be a json list",
     )
 
 
 @with_setup(setup=_setup, teardown=_teardown)
 @print_start_stop
 def test_query_completion():
-    eq_(
-        run_completion(["query", "open"], ""),
-        ["3", "1", "2"]
-    )
-    eq_(
-        run_completion(["query", "open"], "val"),
-        ["1"]
-    )
-    eq_(
-        run_completion(["query", "open"], "cts"),
-        ["3", "2"]
-    )
-    eq_(
-        run_completion(["query", "open"], "category"),
-        ["2"]
-    )
+    eq_(run_completion(["query", "open"], ""), ["3", "1", "2"])
+    eq_(run_completion(["query", "open"], "val"), ["1"])
+    eq_(run_completion(["query", "open"], "cts"), ["3", "2"])
+    eq_(run_completion(["query", "open"], "category"), ["2"])

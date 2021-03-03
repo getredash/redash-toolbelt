@@ -64,21 +64,14 @@ def open_command(app, dashboard_slugs):
 @click.option(
     "--to-file",
     is_flag=True,
-    help="Writes the json export into individual files. FIlenames follow the pattern: 'dashboard_{id}_{slug}.json'."
+    help="Writes the json export into individual files. FIlenames follow the pattern: 'dashboard_{id}_{slug}.json'.",
 )
 @click.option(
     "--output-dir",
-    type=click.Path(
-        writable=True,
-        file_okay=False
-    ),
-    help="Export to this directory. Filenames follow the pattern: '<output-dir>/dashboard_{id}_{slug}.json'"
+    type=click.Path(writable=True, file_okay=False),
+    help="Export to this directory. Filenames follow the pattern: '<output-dir>/dashboard_{id}_{slug}.json'",
 )
-@click.option(
-    "-a", "--all", "all_",
-    is_flag=True,
-    help="Exports all queries."
-)
+@click.option("-a", "--all", "all_", is_flag=True, help="Exports all queries.")
 @click.argument(
     "DASHBOARD_SLUGS",
     type=click.STRING,
@@ -96,14 +89,14 @@ def export_command(app, to_file, output_dir, all_, dashboard_slugs):
     db_slugs = []
     if all_:
         all_dashboards = api.dashboards()
-        db_slugs = [db['slug'] for db in all_dashboards]
+        db_slugs = [db["slug"] for db in all_dashboards]
     else:
         db_slugs = dashboard_slugs
 
     for slug in db_slugs:
         db = api.dashboard(slug)
         if to_file or output_dir is not None:
-            filename = 'dashboard_{}_{}.json'.format(db['id'], slug)
+            filename = "dashboard_{}_{}.json".format(db["id"], slug)
             if output_dir is not None:
                 # create directory
                 if not os.path.exists(output_dir):
@@ -114,7 +107,9 @@ def export_command(app, to_file, output_dir, all_, dashboard_slugs):
             save_dict_as_json_file(db, filename)
             app.echo_info(
                 "dashboard id: {id}, slug: {slug}, name: {name} was exported to: {file}".format(
-                    id=db['id'], slug=slug, name=db['name'], file=filename))
+                    id=db["id"], slug=slug, name=db["name"], file=filename
+                )
+            )
         else:
             app.echo_info_json(db)
 
