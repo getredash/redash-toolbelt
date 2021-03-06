@@ -121,8 +121,12 @@ def print_details(tables_by_qry):
 
 
 @click.command()
-@click.argument("url",)
-@click.argument("key",)
+@click.argument(
+    "url",
+)
+@click.argument(
+    "key",
+)
 @click.argument("data_source_id")
 @click.option("--detail", is_flag=True, help="Prints out all table/query pairs?")
 def main(url, key, data_source_id, detail):
