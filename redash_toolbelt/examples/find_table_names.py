@@ -41,7 +41,7 @@ def format_query(str_sql):
     """Strips all newlines, excess whitespace, and spaces around commas"""
 
     stage1 = str_sql.replace("\n", " ")
-    stage2 = re.sub(r"\s+", " ", stage1).strip()
+    stage2 = re.sub(r"\s+", " ", stage1).strip().rstrip(";")
     stage3 = re.sub(r"(\s*,\s*)", ",", stage2)
 
     return stage3
@@ -264,5 +264,15 @@ def test_9():
 
     tables = extract_table_names(sql)
     expected = ["table1", "table2", "table3", "table4", "table5"]
+
+    assert len(tables) == len(expected) and all([i in expected for i in tables])
+
+
+def test_10():
+
+    sql = "SELECT field FROM table1;"
+
+    tables = extract_table_names(sql)
+    expected = ["table1"]
 
     assert len(tables) == len(expected) and all([i in expected for i in tables])
