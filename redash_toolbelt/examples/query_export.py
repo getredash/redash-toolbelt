@@ -10,10 +10,12 @@ Last Updated At: {last_updated_at}
 */
 {query}"""
 
+
 def save_queries(target_redash_url, api_key, queries):
     for query in queries:
         save_to_disk(query)
         post_remote(target_redash_url, api_key, query)
+
 
 def save_to_disk(query):
     filename = "query_{}.sql".format(query["id"])
@@ -27,18 +29,19 @@ def save_to_disk(query):
         )
         f.write(content)
 
+
 def post_remote(target_redash_url, api_key, query):
     payload = {
         "query": query,
         "name": query["name"],
         "data_source_id": query["data_source_id"],
         "schedule": None,
-        "options": {"parameters":[]}
+        "options": {"parameters": []},
     }
     res = requests.post(
-        target_redash_url + '/api/queries', 
-        headers = {'Authorization': api_key },
-        json=payload
+        target_redash_url + "/api/queries",
+        headers={"Authorization": api_key},
+        json=payload,
     )
 
     if not res.ok:
@@ -61,6 +64,7 @@ def main(source_redash_url, target_redash_url, api_key):
     redash = Redash(source_redash_url, api_key)
     queries = redash.paginate(redash.queries)
     save_queries(target_redash_url, api_key, queries)
+
 
 if __name__ == "__main__":
     main()
