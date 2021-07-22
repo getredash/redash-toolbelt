@@ -30,6 +30,12 @@ class Redash(object):
         """GET api/dashboards/{slug}"""
         return self._get("api/dashboards/{}".format(slug)).json()
 
+    def data_sources(self, page=1, page_size=25):
+        """GET api/data_sources"""
+        return self._get(
+            "api/data_sources", params=dict(page=page, page_size=page_size)
+        ).json()
+
     def create_dashboard(self, name):
         return self._post("api/dashboards", json={"name": name}).json()
 
