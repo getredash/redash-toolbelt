@@ -117,7 +117,7 @@ class Redash(object):
         return self._request("POST", path, **kwargs)
 
     def _request(self, method, path, **kwargs):
-        url = "{}/{}".format(self.redash_url, path)
+        url = "{}/{}".format(self.redash_url.rstrip("/"), path.lstrip("/"))
         response = self.session.request(method, url, **kwargs)
         response.raise_for_status()
         return response
