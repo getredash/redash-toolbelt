@@ -92,8 +92,8 @@ class Redash(object):
         path = "api/queries/{}".format(query_id)
         return self._post(path, json=data)
 
-    def update_visualization(self, vis_id, data):
-        """POST /api/visualizations/{vis_id} with the provided data object."""
+    def update_visualization(self, viz_id, data):
+        """POST /api/visualizations/{viz_id} with the provided data object."""
         path = "api/visualizations/{}".format(vis_id)
         return self._post(path, json=data)
 
