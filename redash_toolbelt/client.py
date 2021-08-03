@@ -94,7 +94,7 @@ class Redash(object):
 
     def update_visualization(self, viz_id, data):
         """POST /api/visualizations/{viz_id} with the provided data object."""
-        path = "api/visualizations/{}".format(vis_id)
+        path = "api/visualizations/{}".format(viz_id)
         return self._post(path, json=data)
 
     def paginate(self, resource):
