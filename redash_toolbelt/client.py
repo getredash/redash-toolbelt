@@ -92,6 +92,11 @@ class Redash(object):
         path = "api/queries/{}".format(query_id)
         return self._post(path, json=data)
 
+    def update_visualization(self, viz_id, data):
+        """POST /api/visualizations/{viz_id} with the provided data object."""
+        path = "api/visualizations/{}".format(viz_id)
+        return self._post(path, json=data)
+
     def paginate(self, resource):
         """Load all items of a paginated resource"""
         stop_loading = False
