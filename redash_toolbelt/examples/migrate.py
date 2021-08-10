@@ -28,7 +28,7 @@ DATA_SOURCES = {
 # link to login for the first time.
 PRESERVE_INVITE_LINKS = True
 
-meta = {
+base_meta = {
     # include here any users you already created in the target Redash account.
     # the key is the user id in the origin Redash instance. make sure to include the API key, as it used to recreate any objects
     # this user might have owned.
@@ -45,8 +45,12 @@ meta = {
     "dashboards": {}
 }
 
-meta["users"] = {int(key): val for key,val in meta["users"].items()}
+meta = {}
 
+def read_meta():
+    print("Opening meta...")
+    with open("meta.json", "r") as fp:
+        return json.load(fp)
 
 def save_meta():
     print("Saving meta...")
@@ -65,12 +69,44 @@ def save_meta_wrapper(func):
 
     return wrapped
 
+
+meta = read_meta() or base_meta
+meta["users"] = {int(key): val for key,val in meta["users"].items()}
+
+
 @save_meta_wrapper
 def import_users(orig_client, dest_client):
+    """This function expects that the meta object already includes details for admin users on the DEST instance.
+    If you already created users on the DEST instance, enter their details into meta before using this function.
+    """
+    
     print("Importing users...")
 
-    users = orig_client.paginate(orig_client.users)
-    for user in users:
+    def user_lists_are_equal(orig_list, dest_list):
+
+        dest_user_emails = set([i["email"] for i in dest_list])
+        orig_user_emails = set([i["email"] for i in orig_list])
+
+        return dest_user_emails == orig_user_emails
+
+    orig_users = orig_client.paginate(orig_client.users)
+    dest_users = dest_client.paginate(dest_client.users)
+
+
+    # Check if the user list has already been synced between orig, dest, and meta
+    if valid_user_meta(dest_users):
+        print("OK: users have been synced. Okay to proceed.")
+        return
+
+    # Check if the user list has been synced between orig and dest
+    # In this case, meta.json should be updated
+    if user_lists_are_equal(orig_users, dest_users):
+        print("CAUTION: orig and dest user lists are in sync, but users are missing from meta.json")
+        return
+
+    # Users are missing from dest and meta (default case)
+    # Add these users to the dest instance and add them to meta.json
+    for user in orig_users:
         print("   importing: {}".format(user['id']))
         data = {
             "name": user['name'],
@@ -97,6 +133,39 @@ def import_users(orig_client, dest_client):
             'email': new_user['email'],
             'invite_link': PRESERVE_INVITE_LINKS and new_user['invite_link'] or ""
         }
+
+    dest_users = dest_client.paginate(dest_client.users)
+    dest_user_emails = [i["email"] for i in dest_users]
+    org_user_emails = [i["email"] for i in orig_users]
+
+    if set(dest_user_emails) == set(org_user_emails):
+        print("User list is now synced!")
+    else:
+        print("CAUTION: user list is not in sync! Destination contains {} users. Origin contains {} users"
+        .format(len(dest_user_emails), len(org_user_emails)))
+
+
+def valid_user_meta(dest_users):
+    """Confirms all users in DEST are present in meta.
+    """
+
+    meta_user_list = [i["email"] for i in meta["users"].values()]
+
+    missing = []
+    for usr in dest_users:
+        email = usr["email"]
+        if email in meta_user_list:
+            continue
+        else:
+            missing.append(email)
+
+    if len(missing) == 0:
+        print("OK: Meta agrees with dest user list")
+        return True
+    else:
+        print("CAUTION: Some users are missing from the meta.json. ")
+        [print(i) for i in missing]
+        return False
 
 
 def get_api_key(client, user_id):
