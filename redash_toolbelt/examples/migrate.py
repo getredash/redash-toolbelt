@@ -4,6 +4,7 @@ import json
 import requests
 import logging
 import sys
+from redash_toolbelt import Redash
 
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logging.getLogger("requests").setLevel("ERROR")
@@ -136,9 +137,9 @@ def import_queries(orig_client, dest_client):
             "name": query['name'],
         }
 
-        user_api_key = get_api_key(client, query['user']['id'])
+        user_api_key = get_api_key(dest_client, query['user']['id'])
         user_client = Redash(DESTINATION, user_api_key)
-        response = user_client._post("/api/queries", json=data)
+        response = user_client.create_query(data)
 
         destination_id = response.json()['id']
         meta['queries'][query['id']] = destination_id
@@ -146,9 +147,7 @@ def import_queries(orig_client, dest_client):
         # New queries are always saved as drafts.
         # Need to sync the ORIGIN draft status to DESTINATION.
         if not query['is_draft']:
-            response = dest_client._post(
-                f"{DESTINATION}'/api/queries/{destination_id}",json={'is_draft': False})
-
+            response = dest_client.update_query(destination_id, {"is_draft": False})
 
 
 def import_visualizations(orig_client, dest_client):
