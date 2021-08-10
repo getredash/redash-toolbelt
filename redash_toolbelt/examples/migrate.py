@@ -48,6 +48,24 @@ meta = {
 meta["users"] = {int(key): val for key,val in meta["users"].items()}
 
 
+def save_meta():
+    print("Saving meta...")
+    with open('meta.json', 'w') as f:
+        json.dump(meta, f)
+
+def save_meta_wrapper(func):
+
+    def wrapped(*args, **kwargs):
+        try:
+            func(*args, **kwargs)
+        except Exception as e:
+            print(e)
+        finally:
+            save_meta()
+
+    return wrapped
+
+@save_meta_wrapper
 def import_users(orig_client, dest_client):
     print("Importing users...")
 
@@ -116,7 +134,7 @@ def convert_schedule(schedule):
 
     return schedule_json
 
-
+@save_meta_wrapper
 def import_queries(orig_client, dest_client):
     print("Import queries...")
 
@@ -157,7 +175,7 @@ def import_queries(orig_client, dest_client):
         if not query['is_draft']:
             response = dest_client.update_query(destination_id, {"is_draft": False})
 
-
+@save_meta_wrapper
 def import_visualizations(orig_client, dest_client):
     print("Importing visualizations...")
 
@@ -194,7 +212,7 @@ def import_visualizations(orig_client, dest_client):
 
                 meta['visualizations'][v['id']] = response.json()['id']
 
-
+@save_meta_wrapper
 def import_dashboards(orig_client, dest_client):
     print("Importing dashboards...")
 
@@ -266,10 +284,8 @@ def fix_queries(orig_client, dest_client):
         response = user_client._post(f'/api/queries/{new_query_id}', json={'options': options})
 
 
-def save_meta():
-    print("Saving meta...")
-    with open('meta.json', 'w') as f:
-        json.dump(meta, f)
+
+
 
 
 def import_all():
