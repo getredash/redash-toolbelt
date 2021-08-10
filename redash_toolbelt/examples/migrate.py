@@ -6,7 +6,7 @@ import logging
 import sys
 from redash_toolbelt import Redash
 
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 logging.getLogger("requests").setLevel("ERROR")
 
 # The Redash instance you're copying from:
