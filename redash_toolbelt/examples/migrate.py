@@ -63,7 +63,11 @@ def import_users(orig_client, dest_client):
             print("    ... skipping: admin.")
             continue
 
-        response = dest_client._post(f'/api/users?no_invite=1', json=data)
+        try:
+            response = dest_client._post(f"api/users?no_invite=1", json=data)
+        except Exception as e:
+            print("Could not create user: probably this user already exists but is not present in meta.json")
+            continue
 
         new_user = response.json()
         meta['users'][user['id']] = {
@@ -74,7 +78,7 @@ def import_users(orig_client, dest_client):
 
 
 def get_api_key(client, user_id):
-    client.get(f'/api/users/{user_id}')
+    response = client.get(f'/api/users/{user_id}')
 
     return response.json()['api_key']
 
@@ -195,7 +199,7 @@ def import_dashboards(orig_client, dest_client):
     for dashboard in dashboards:
         print("   importing: {}".format(dashboard['slug']))
 
-        d = orig_client(f'/api/dashboards/{dashboard['slug']}')
+        d = orig_client(f"/api/dashboards/{dashboard['slug']}")
 
         orig_user_id = d['user']['id']
         dest_user_id = meta['users'].get(orig_user_id).get('id')
@@ -208,7 +212,7 @@ def import_dashboards(orig_client, dest_client):
         response = dest_client._post('/api/dashboards', json=data)
 
         new_dashboard = response.json()
-        user_client._post(f'/api/dashboards/{new_dashboard['id']}', json={'is_draft': False})
+        user_client._post(f"/api/dashboards/{new_dashboard['id']}", json={'is_draft': False})
 
         # recreate widget
         for widget in d['widgets']:
