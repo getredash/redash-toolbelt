@@ -23,6 +23,10 @@ DATA_SOURCES = {
     1: 1234,
 }
 
+# If true, the invitation link for users created by this script will be 
+# preserved in meta.json. Otherwise, users will need to click the "forgot password"
+# link to login for the first time.
+PRESERVE_INVITE_LINKS = True
 
 meta = {
     # include here any users you already created in the target Redash account.
@@ -73,7 +77,7 @@ def import_users(orig_client, dest_client):
         meta['users'][user['id']] = {
             'id': new_user['id'],
             'email': new_user['email'],
-            'invite_link': "" # new_user['invite_link']
+            'invite_link': PRESERVE_INVITE_LINKS and new_user['invite_link'] or ""
         }
 
 
