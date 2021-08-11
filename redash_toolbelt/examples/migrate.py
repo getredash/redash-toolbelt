@@ -1,5 +1,8 @@
 # Copied from https://gist.github.com/arikfr/2c7d09f6837b256c58a3d3ef6a97f61a
 
+### TODO: document 400 Client Error: BAD REQUEST for url: http://localhost:5000/api/queries
+
+
 import json
 import requests
 import logging
@@ -236,6 +239,7 @@ def import_queries(orig_client, dest_client):
             "schedule": convert_schedule(query['schedule']),
             "description": query['description'],
             "name": query['name'],
+            "options": query["options"],
         }
 
         try:
@@ -247,7 +251,13 @@ def import_queries(orig_client, dest_client):
         print("Query {} - OK  - importing".format(origin_id))
 
         user_client = Redash(DESTINATION, user_api_key)
-        response = user_client.create_query(data)
+        
+        try:
+            response = user_client.create_query(data)
+        except Exception as e:
+            print("Query {} - FAIL - {}".format(origin_id, e))
+            continue
+
 
         destination_id = response.json()['id']
         meta['queries'][query['id']] = destination_id
