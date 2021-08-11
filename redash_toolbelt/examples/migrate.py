@@ -6,6 +6,9 @@ import logging
 import sys
 from redash_toolbelt import Redash
 
+class UserNotFoundException(Exception):
+    pass
+
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 logging.getLogger("requests").setLevel("ERROR")
 
@@ -169,15 +172,18 @@ def valid_user_meta(dest_users):
 
 
 def get_api_key(client, user_id):
-    response = client.get(f'/api/users/{user_id}')
+    response = client._get(f'api/users/{user_id}')
 
     return response.json()['api_key']
 
 
-def user_with_api_key(user_id):
+def user_with_api_key(user_id, dest_client):
     user = meta['users'].get(user_id)
+
+    if user is None:
+        raise UserNotFoundException("Origin user: {} not found in meta.json. Was this user disabled?".format(user_id))
     if 'api_key' not in user:
-        user['api_key'] = get_api_key(user['id'])
+        user['api_key'] = get_api_key(dest_client, user['id'])
     return user
 
 
@@ -213,14 +219,14 @@ def import_queries(orig_client, dest_client):
 
         origin_id = query['id']
 
-        print(f"   importing: {origin_id}")
         data_source_id = DATA_SOURCES.get(query['data_source_id'])
-        if data_source_id is None:
-            print("   skipped ({})".format(data_source_id))
+
+        if origin_id in meta['queries'] or str(origin_id)  in meta["queries"]:
+            print("Query {} - SKIP - was already imported".format(origin_id))
             continue
 
-        if origin_id in meta['queries']:
-            print("   skipped - was already imported".format(origin_id))
+        if data_source_id is None:
+            print("Query {} - SKIP - data source has not been mapped ({})".format(origin_id, query["data_source_id"]))
             continue
 
         data = {
@@ -232,7 +238,14 @@ def import_queries(orig_client, dest_client):
             "name": query['name'],
         }
 
-        user_api_key = get_api_key(dest_client, query['user']['id'])
+        try:
+            user_api_key = user_with_api_key(query['user']['id'], dest_client)["api_key"]
+        except UserNotFoundException as e:
+            print("Query {} - FAIL - {}".format(query["id"], e))
+            continue
+        
+        print("Query {} - OK  - importing".format(origin_id))
+
         user_client = Redash(DESTINATION, user_api_key)
         response = user_client.create_query(data)
 
