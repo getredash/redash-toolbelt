@@ -20,6 +20,12 @@ class Redash(object):
             "api/queries", params=dict(page=page, page_size=page_size)
         ).json()
 
+    def get_query(self, query_id):
+        """GET api/queries/<query_id>"""
+        return self._get(
+            f"api/queries/{query_id}"
+        ).json()
+
     def users(self, page=1, page_size=25):
         """GET api/users"""
         return self._get('api/users', params=dict(page=page, page_size=page_size)).json()

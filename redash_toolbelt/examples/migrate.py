@@ -272,7 +272,9 @@ def import_visualizations(orig_client, dest_client):
     print("Importing visualizations...")
 
     for query_id, new_query_id in meta['queries'].items():
-        query = orig_client._get(f'/api/queries/{query_id}')
+        
+        query = orig_client.get_query(query_id)
+        
         orig_user_id = query['user']['id']
         dest_user_id = meta['users'].get(orig_user_id).get('id')
 
