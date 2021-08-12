@@ -278,6 +278,32 @@ def import_queries(orig_client, dest_client):
 
 
 @save_meta_wrapper
+def fix_queries(orig_client, dest_client):
+    """
+    This runs after importing all queries, so we can update the query id reference
+    in parameter definitions.
+    """
+    print("Updating queries options...")
+
+    for query_id, new_query_id in meta["queries"].items():
+        query = orig_client.get_query(query_id)
+        orig_user_id = query["user"]["id"]
+
+        dest_user_id = meta["users"].get(orig_user_id).get("id")
+
+        print("   Fixing: {}".format(query_id))
+
+        options = query["options"]
+        for p in options.get("parameters", []):
+            if "queryId" in p:
+                p["queryId"] = meta["queries"].get(str(p["queryId"]))
+
+        user_api_key = user_with_api_key(orig_user_id, dest_client,)["api_key"]
+        user_client = Redash(dest_client.redash_url, user_api_key)
+        user_client.update_query(new_query_id, {"options": options})
+
+
+@save_meta_wrapper
 def import_visualizations(orig_client, dest_client):
     print("Importing visualizations...")
 
@@ -328,7 +354,7 @@ def import_dashboards(orig_client, dest_client):
     for dashboard in dashboards:
         print("   importing: {}".format(dashboard["slug"]))
 
-        d = orig_client(f"/api/dashboards/{dashboard['slug']}")
+        d = orig_client.dashboard(dashboard["slug"])
 
         orig_user_id = d["user"]["id"]
         dest_user_id = meta["users"].get(orig_user_id).get("id")
@@ -341,22 +367,22 @@ def import_dashboards(orig_client, dest_client):
         response = dest_client._post("/api/dashboards", json=data)
 
         new_dashboard = response.json()
-        user_client._post(
-            f"/api/dashboards/{new_dashboard['id']}", json={"is_draft": False}
+        new_dash_id = new_dashboard["id"]
+
+        # Sets published status to match source instance
+        not d["is_draft"] and user_client.update_dashboard(
+            new_dash_id, {"is_draft": False}
         )
 
         # recreate widget
         for widget in d["widgets"]:
             data = {
-                "dashboard_id": new_dashboard["id"],
-                "options": widget["options"],
+                "dashboard_id": new_dash_id,
+                "options": widget["options"] or {},
                 "width": widget["width"],
                 "text": widget["text"],
                 "visualization_id": None,
             }
-
-            if not isinstance(widget["options"], dict):
-                widget["options"] = {}
 
             if "visualization" in widget:
                 data["visualization_id"] = meta["visualizations"].get(
@@ -367,33 +393,9 @@ def import_dashboards(orig_client, dest_client):
                 print("skipping for missing viz")
                 continue
 
-            response = user_client._post("/api/widgets", json=data)
-
-
-def fix_queries(orig_client, dest_client):
-    """
-    This runs after importing all queries, so we can update the query id reference
-    in parameter definitions.
-    """
-    print("Updating queries options...")
-
-    for query_id, new_query_id in meta["queries"].items():
-        query = orig_client(f"/api/queries/{query_id}")
-        orig_user_id = query["user"]["id"]
-        dest_user_id = meta["users"].get(orig_user_id).get("id")
-
-        print("   Fixing: {}".format(query_id))
-
-        options = query["options"]
-        for p in options.get("parameters", []):
-            if "queryId" in p:
-                p["queryId"] = meta["queries"].get(str(p["queryId"]))
-
-        user_api_key = get_api_key(dest_user_id)
-        user_client = Redash(DESTINATION, user_api_key)
-        response = user_client._post(
-            f"/api/queries/{new_query_id}", json={"options": options}
-        )
+            user_client.create_widget(
+                new_dash_id, data["visualization_id"], data["text"], data["options"]
+            )
 
 
 def import_all():
