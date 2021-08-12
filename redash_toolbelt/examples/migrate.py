@@ -368,6 +368,10 @@ def import_dashboards(orig_client, dest_client):
     dashboards = orig_client.paginate(orig_client.dashboards)
 
     for dashboard in dashboards:
+        if dashboard["slug"] in meta["dashboards"]:
+            print("Dashboard `{}` - SKIP - Already imported".format(dashboard["slug"]))
+            continue
+
         print("   importing: {}".format(dashboard["slug"]))
 
         d = orig_client.dashboard(dashboard["slug"])
@@ -414,6 +418,7 @@ def import_dashboards(orig_client, dest_client):
                 new_dash_id, data["visualization_id"], data["text"], data["options"]
             )
 
+        meta["dashboards"].update({d["slug"]: new_dashboard["slug"]})
 
 def import_all():
     try:
