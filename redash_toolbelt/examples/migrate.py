@@ -326,7 +326,12 @@ def import_visualizations(orig_client, dest_client):
         query = orig_client.get_query(query_id)
 
         orig_user_id = query["user"]["id"]
-        dest_user_id = meta["users"].get(orig_user_id).get("id")
+
+        try:
+            dest_user_api_key = user_with_api_key(orig_user_id, dest_client)["api_key"]
+        except UserNotFoundException as e:
+            print("Query {} - FAIL - Visualizations skipped: ".format(query_id, e))
+            continue
 
         print("   importing visualizations of: {}".format(query_id))
 
@@ -344,8 +349,7 @@ def import_visualizations(orig_client, dest_client):
                     if new_v["type"] == "TABLE":
                         meta["visualizations"][v["id"]] = new_v["id"]
             else:
-                user_api_key = get_api_key(dest_client, dest_user_id)
-                user_client = Redash(DESTINATION, user_api_key)
+                user_client = Redash(DESTINATION, dest_user_api_key)
 
                 data = {
                     "name": v["name"],
