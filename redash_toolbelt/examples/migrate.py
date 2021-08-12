@@ -314,7 +314,7 @@ def fix_queries(orig_client, dest_client):
 @save_meta_wrapper
 def import_visualizations(orig_client, dest_client):
     print("Importing visualizations...")
-    
+
     for query_id, new_query_id in meta["queries"].items():
 
         if meta.get("flags", {}).get("viz_import_complete", {}).get(query_id):
@@ -383,7 +383,7 @@ def import_dashboards(orig_client, dest_client):
         except UserNotFoundException as e:
             print("Dashboard {} - FAIL - {}".format(d["slug"], e))
             continue
-    
+
         user_client = Redash(DESTINATION, user_api_key)
 
         new_dashboard = user_client.create_dashboard(d["name"])
@@ -411,7 +411,11 @@ def import_dashboards(orig_client, dest_client):
                 )
 
             if "visualization" in widget and not data["visualization_id"]:
-                print("Widget {} - SKIP - visualization is missing (check missing data source, query, or viz)".format(widget["id"]))
+                print(
+                    "Widget {} - SKIP - visualization is missing (check missing data source, query, or viz)".format(
+                        widget["id"]
+                    )
+                )
                 continue
 
             user_client.create_widget(
@@ -419,6 +423,7 @@ def import_dashboards(orig_client, dest_client):
             )
 
         meta["dashboards"].update({d["slug"]: new_dashboard["slug"]})
+
 
 def import_all():
     try:
