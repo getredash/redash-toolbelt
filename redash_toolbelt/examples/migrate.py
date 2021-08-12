@@ -288,6 +288,9 @@ def import_visualizations(orig_client, dest_client):
 
         for v in query["visualizations"]:
 
+            if str(v["id"]) in meta["visualizations"]:
+                print("Viz {} - SKIP - Already imported".format(v["id"]))
+                continue
 
             if v["type"] == "TABLE":
                 response = dest_client.get_query(new_query_id)
@@ -297,9 +300,6 @@ def import_visualizations(orig_client, dest_client):
                     if new_v["type"] == "TABLE":
                         meta["visualizations"][v["id"]] = new_v["id"]
             else:
-                if str(v["id"]) in meta["visualizations"]:
-                    continue
-
                 user_api_key = get_api_key(dest_client, dest_user_id)
                 user_client = Redash(DESTINATION, user_api_key)
 
