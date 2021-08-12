@@ -44,6 +44,7 @@ base_meta = {
     "queries": {},
     "visualizations": {},
     "dashboards": {},
+    "flags": {"viz_import_complete": {}},
 }
 
 meta = {}
@@ -52,7 +53,14 @@ meta = {}
 def read_meta():
     print("Opening meta...")
     with open("meta.json", "r") as fp:
-        return json.load(fp)
+        _meta = json.load(fp)
+        _meta.setdefault("users", {})
+        _meta.setdefault("queries", {})
+        _meta.setdefault("visualizations", {})
+        _meta.setdefault("dashboards", {})
+        _meta.setdefault("flags", {"viz_import_complete": {}})
+
+        return _meta
 
 
 def save_meta():
@@ -306,8 +314,14 @@ def fix_queries(orig_client, dest_client):
 @save_meta_wrapper
 def import_visualizations(orig_client, dest_client):
     print("Importing visualizations...")
-
+    
     for query_id, new_query_id in meta["queries"].items():
+
+        if meta.get("flags", {}).get("viz_import_complete", {}).get(query_id):
+            print(
+                "Query {} - SKIP - All visualisations already imported".format(query_id)
+            )
+            continue
 
         query = orig_client.get_query(query_id)
 
@@ -343,6 +357,8 @@ def import_visualizations(orig_client, dest_client):
                 response = user_client._post("api/visualizations", json=data)
 
                 meta["visualizations"][v["id"]] = response.json()["id"]
+
+        meta["flags"]["viz_import_complete"][query_id] = True
 
 
 @save_meta_wrapper
