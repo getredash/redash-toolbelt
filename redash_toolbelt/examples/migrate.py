@@ -22,7 +22,7 @@ ORIGIN = "https://redash.acme.com"
 ORIGIN_API_KEY = ""  # admin API key
 
 # The Redash account you're copying into:
-DESTINATION = 'https://app.redash.io/acme'
+DESTINATION = "https://app.redash.io/acme"
 DESTINATION_API_KEY = ""  # admin API key
 
 # You need to create the data sources in advance in the destination account. Once created, update the map here:
@@ -31,7 +31,7 @@ DATA_SOURCES = {
     1: 1234,
 }
 
-# If true, the invitation link for users created by this script will be 
+# If true, the invitation link for users created by this script will be
 # preserved in meta.json. Otherwise, users will need to click the "forgot password"
 # link to login for the first time.
 PRESERVE_INVITE_LINKS = True
@@ -40,7 +40,9 @@ base_meta = {
     # include here any users you already created in the target Redash account.
     # the key is the user id in the origin Redash instance. make sure to include the API key, as it used to recreate any objects
     # this user might have owned.
-    "users": {"1": {"id": "", "email": "", "invite_link": "", "api_key": ""},},
+    "users": {
+        "1": {"id": "", "email": "", "invite_link": "", "api_key": ""},
+    },
     "queries": {},
     "visualizations": {},
     "dashboards": {},
@@ -160,8 +162,7 @@ def import_users(orig_client, dest_client):
 
 
 def valid_user_meta(dest_users):
-    """Confirms all users in DEST are present in meta.
-    """
+    """Confirms all users in DEST are present in meta."""
 
     meta_user_list = [i["email"] for i in meta["users"].values()]
 
@@ -306,7 +307,10 @@ def fix_queries(orig_client, dest_client):
             if "queryId" in p:
                 p["queryId"] = meta["queries"].get(str(p["queryId"]))
 
-        user_api_key = user_with_api_key(orig_user_id, dest_client,)["api_key"]
+        user_api_key = user_with_api_key(
+            orig_user_id,
+            dest_client,
+        )["api_key"]
         user_client = Redash(dest_client.redash_url, user_api_key)
         user_client.update_query(new_query_id, {"options": options})
 
@@ -383,7 +387,10 @@ def import_dashboards(orig_client, dest_client):
         orig_user_id = d["user"]["id"]
 
         try:
-            user_api_key = user_with_api_key(orig_user_id, dest_client,)["api_key"]
+            user_api_key = user_with_api_key(
+                orig_user_id,
+                dest_client,
+            )["api_key"]
         except UserNotFoundException as e:
             print("Dashboard {} - FAIL - {}".format(d["slug"], e))
             continue
