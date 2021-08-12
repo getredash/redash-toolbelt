@@ -180,13 +180,17 @@ def get_api_key(client, user_id):
     return response.json()["api_key"]
 
 
-def user_with_api_key(user_id, dest_client):
-    user = meta["users"].get(user_id)
+def user_with_api_key(origin_user_id, dest_client):
+    """Look up the destination user object using its origin user ID.
+
+    The destination client must be an admin to have access to the user API key.
+    """
+    user = meta["users"].get(origin_user_id)
 
     if user is None:
         raise UserNotFoundException(
             "Origin user: {} not found in meta.json. Was this user disabled?".format(
-                user_id
+                origin_user_id
             )
         )
     if "api_key" not in user:
