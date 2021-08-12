@@ -373,16 +373,17 @@ def import_dashboards(orig_client, dest_client):
         d = orig_client.dashboard(dashboard["slug"])
 
         orig_user_id = d["user"]["id"]
-        dest_user_id = meta["users"].get(orig_user_id).get("id")
 
-        data = {"name": d["name"]}
-
-        user_api_key = get_api_key(dest_client, dest_user_id)
+        try:
+            user_api_key = user_with_api_key(orig_user_id, dest_client,)["api_key"]
+        except UserNotFoundException as e:
+            print("Dashboard {} - FAIL - {}".format(d["slug"], e))
+            continue
+    
         user_client = Redash(DESTINATION, user_api_key)
 
-        response = dest_client._post("/api/dashboards", json=data)
+        new_dashboard = user_client.create_dashboard(d["name"])
 
-        new_dashboard = response.json()
         new_dash_id = new_dashboard["id"]
 
         # Sets published status to match source instance
@@ -406,7 +407,7 @@ def import_dashboards(orig_client, dest_client):
                 )
 
             if "visualization" in widget and not data["visualization_id"]:
-                print("skipping for missing viz")
+                print("Widget {} - SKIP - visualization is missing (check missing data source, query, or viz)".format(widget["id"]))
                 continue
 
             user_client.create_widget(
