@@ -38,7 +38,9 @@ class Redash(object):
 
     def get_data_sources(self):
         """GET api/data_sources"""
-        return self._get("api/data_sources",).json()
+        return self._get(
+            "api/data_sources",
+        ).json()
 
     def dashboard(self, slug):
         """GET api/dashboards/{slug}"""
@@ -116,7 +118,7 @@ class Redash(object):
 
     def paginate(self, resource, page=1, page_size=100):
         """Load all items of a paginated resource
-        
+
         NOTE: This might fail due to rate limit (50/hr, 200/day).
         TODO: Add backoff?
         """

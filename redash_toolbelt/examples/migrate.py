@@ -26,8 +26,7 @@ class UserNotFoundException(Exception):
 
 
 def check_data_sources(orig_client, dest_client):
-    """Checks for obvious issues with the data source map that can cause issues further on
-    """
+    """Checks for obvious issues with the data source map that can cause issues further on"""
     if len(DATA_SOURCES) == 0 or (
         len(DATA_SOURCES) == 1 and DATA_SOURCES.get(-1) == -1234
     ):
@@ -244,7 +243,10 @@ def fix_queries(orig_client, dest_client):
             if "queryId" in p:
                 p["queryId"] = meta["queries"].get(str(p["queryId"]))
 
-        user_api_key = user_with_api_key(orig_user_id, dest_client,)["api_key"]
+        user_api_key = user_with_api_key(
+            orig_user_id,
+            dest_client,
+        )["api_key"]
         user_client = Redash(dest_client.redash_url, user_api_key)
         user_client.update_query(new_query_id, {"options": options})
 
@@ -319,7 +321,10 @@ def import_dashboards(orig_client, dest_client):
         orig_user_id = d["user"]["id"]
 
         try:
-            user_api_key = user_with_api_key(orig_user_id, dest_client,)["api_key"]
+            user_api_key = user_with_api_key(
+                orig_user_id,
+                dest_client,
+            )["api_key"]
         except UserNotFoundException as e:
             print("Dashboard {} - FAIL - {}".format(d["slug"], e))
             continue
@@ -448,7 +453,12 @@ def get_api_key(client, user_id):
 # include here any users you already created in the target Redash account.
 # the key is the user id in the origin Redash instance.
 base_meta = {
-    "users": {"-1": {"id": -1, "email": "",}},
+    "users": {
+        "-1": {
+            "id": -1,
+            "email": "",
+        }
+    },
     "queries": {},
     "visualizations": {},
     "dashboards": {},
@@ -477,14 +487,14 @@ def get_meta(tries=0):
 
     if tries > 1:
         raise Exception("Could not create or read meta.json")
-        
+
     try:
         with open("meta.json", "r") as fp:
             return json.load(fp)
     except FileNotFoundError:
         print("meta.json not found...creating...try again")
         init()
-        return get_meta(tries+1)
+        return get_meta(tries + 1)
     except json.JSONDecodeError:
         raise Exception("badly formed meta.json...please delete and try again")
 
@@ -531,30 +541,30 @@ try:
 
     DATA_SOURCES = meta["data_sources"]
 except Exception as e:
-    print(
-        "Script failed during initialization."
-    )
+    print("Script failed during initialization.")
     print("Exception: {}".format(e))
 
 
 @click.command()
-@click.argument("command",)
+@click.argument(
+    "command",
+)
 def main(command):
     """Redash migration command. Can be used to migrate objects (queries, visualizations, dashboards)
     from one Redash instance to another.
 
     Usage: python migrate.py <COMMAND>
 
-    Available commands are: 
-    
+    Available commands are:
+
     check_data_sources: compare the data sources written to meta.json against those visible on origin and destination Redash instances
-    
+
     users: migrate users
-    
+
     queries: migrate queries and then fix any query-based dropdown list parameter references. Skips queries from users not in meta.json
-    
+
     visualizations: migrate visualizations for queries that successfully migrated
-    
+
     dashboards: migrate dashboards. skips widgets with missing visualizations or users
 
     These should be called in that order. Checking the contents of meta.json between steps to confirm
