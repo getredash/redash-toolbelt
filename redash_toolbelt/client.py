@@ -20,15 +20,32 @@ class Redash(object):
             "api/queries", params=dict(page=page, page_size=page_size)
         ).json()
 
+    def get_query(self, query_id):
+        """GET api/queries/<query_id>"""
+        return self._get(f"api/queries/{query_id}").json()
+
+    def users(self, page=1, page_size=25):
+        """GET api/users"""
+        return self._get(
+            "api/users", params=dict(page=page, page_size=page_size)
+        ).json()
+
     def dashboards(self, page=1, page_size=25):
         """GET api/dashboards"""
         return self._get(
             "api/dashboards", params=dict(page=page, page_size=page_size)
         ).json()
 
+    def get_data_sources(self):
+        """GET api/data_sources"""
+        return self._get("api/data_sources",).json()
+
     def dashboard(self, slug):
         """GET api/dashboards/{slug}"""
         return self._get("api/dashboards/{}".format(slug)).json()
+
+    def create_query(self, query_json):
+        return self._post("api/queries", json=query_json)
 
     def create_dashboard(self, name):
         return self._post("api/dashboards", json={"name": name}).json()
@@ -97,23 +114,23 @@ class Redash(object):
         path = "api/visualizations/{}".format(viz_id)
         return self._post(path, json=data)
 
-    def paginate(self, resource):
-        """Load all items of a paginated resource"""
-        stop_loading = False
-        page = 1
-        page_size = 100
+    def paginate(self, resource, page=1, page_size=100):
+        """Load all items of a paginated resource
+        
+        NOTE: This might fail due to rate limit (50/hr, 200/day).
+        TODO: Add backoff?
+        """
 
-        items = []
+        response = resource(page=page, page_size=page_size)
+        items = response["results"]
 
-        while not stop_loading:
-            response = resource(page=page, page_size=page_size)
-
-            items += response["results"]
-            page += 1
-
-            stop_loading = response["page"] * response["page_size"] >= response["count"]
-
-        return items
+        if response["page"] * response["page_size"] >= response["count"]:
+            return items
+        else:
+            return [
+                *items,
+                *self.paginate(resource, page=page + 1, page_size=page_size),
+            ]
 
     def _get(self, path, **kwargs):
         return self._request("GET", path, **kwargs)
