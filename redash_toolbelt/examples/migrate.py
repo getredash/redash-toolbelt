@@ -370,6 +370,53 @@ def import_dashboards(orig_client, dest_client):
         meta["dashboards"].update({d["slug"]: new_dashboard["slug"]})
 
 
+def import_alerts(orig_client, dest_client):
+
+    alerts = orig_client.alerts()
+    for a in alerts:
+
+        orig_id = a.get("id")
+
+        if int(orig_id) == 4582:
+            breakpoint()
+        dest_id = meta["alerts"].get(orig_id)
+        if dest_id:
+            print(f"Alert {orig_id} - SKIP - Already imported with new id {dest_id}")
+            continue
+
+        this_alert = orig_client.get_alert(a.get("id"))
+
+        orig_target_query_id = this_alert.get("query", {}).get("id")
+
+        # Check the target query is already present
+        target_query_id = meta["queries"].get(orig_target_query_id)
+
+        if target_query_id is None:
+            print(
+                f'Alert {this_alert["id"]} - SKIP - Origin target query {orig_target_query_id} has not been migrated'
+            )
+            continue
+
+        data = {
+            "name": this_alert.get("name"),
+            "query_id": target_query_id,
+            "options": this_alert.get("options"),
+        }
+
+        try:
+            resp = dest_client.create_alert(**data)
+            dest_id = resp["id"]
+            print(f'Alert {this_alert["id"]} - OK - Imported with new id {dest_id}')
+        except Exception as e:
+            print(f'Alert {this_alert["id"]} - ERROR - {e}')
+
+        meta["alerts"][this_alert.get("id")] = dest_id
+
+        if this_alert.get("rearm"):
+            dest_client.update_alert(id=dest_id, rearm=this_alert.get("rearm"))
+            print(f'Alert {this_alert["id"]} - OK - Fixed rearm')
+
+
 #     _   _ _   _ _ _ _   _
 #    | | | | |_(_) (_) |_(_) ___  ___
 #    | | | | __| | | | __| |/ _ \/ __|
@@ -462,6 +509,7 @@ base_meta = {
     "queries": {},
     "visualizations": {},
     "dashboards": {},
+    "alerts": {},
     "flags": {"viz_import_complete": {}},
     "data_sources": {"-1": -1234},
     "settings": {
@@ -527,6 +575,8 @@ def save_meta_wrapper(func):
 try:
     meta = get_meta()
     meta["users"] = {int(key): val for key, val in meta["users"].items()}
+    meta["queries"] = {int(key): val for key, val in meta["queries"].items()}
+    meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
     meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
 
     # The Redash instance you're copying from:
@@ -583,6 +633,7 @@ def main(command):
         "queries": import_queries,
         "visualizations": import_visualizations,
         "dashboards": import_dashboards,
+        "alerts": import_alerts,
     }
 
     this_command = save_meta_wrapper(command_map.get(command))
