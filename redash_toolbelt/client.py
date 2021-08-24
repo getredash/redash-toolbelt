@@ -116,6 +116,31 @@ class Redash(object):
         path = "api/visualizations/{}".format(viz_id)
         return self._post(path, json=data)
 
+    def alerts(self):
+        """GET api/alerts
+        This API endpoint is not paginated."""
+        return self._get("api/alerts").json()
+
+    def get_alert(self, alert_id):
+        """GET api/alerts/<alert_id>"""
+        return self._get(f"api/alerts/{alert_id}").json()
+
+    
+    def create_alert(self, name, options, query_id):
+        """POST api/alerts to create a new alert"""
+
+        payload = dict(name=name,options=options,query_id=query_id,)
+        return self._post(f"api/alerts", json=payload).json()
+
+    def update_alert(self, id, name=None,options=None,query_id=None,rearm=None):
+
+        payload = dict(name=name, options=options,query_id=query_id,rearm=rearm)
+        
+        no_none = {key:val for key,val in payload.items() if val}
+
+        return self._post(f"api/alerts/{id}", json=no_none)
+        
+
     def paginate(self, resource, page=1, page_size=100):
         """Load all items of a paginated resource
 
