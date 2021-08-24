@@ -113,9 +113,7 @@ def import_users(orig_client, dest_client):
     # Check if the user list has been synced between orig and dest
     # In this case, meta.json should be updated
     if user_lists_are_equal(orig_users, dest_users):
-        print(
-            "OK: orig and dest user lists are in sync"
-        )
+        print("OK: orig and dest user lists are in sync")
         return
 
     # Users are missing from dest and meta (default case)
