@@ -14,21 +14,61 @@ class Redash(object):
         except requests.exceptions.HTTPError:
             return False
 
-    def queries(self, page=1, page_size=25):
+    def queries(self, page=1, page_size=25, only_favorites=False):
         """GET api/queries"""
+
+        target_url = "api/queries/favorites" if only_favorites else "api/queries"
+
+        return self._get(target_url, params=dict(page=page, page_size=page_size)).json()
+
+    def create_favorite(self, _type: str, id):
+        """POST to api/queries/<id>/favorite or api/dashboards/<id>/favorite"""
+
+        if _type == "dashboard":
+            url = f"api/dashboards/{id}/favorite"
+        elif _type == "query":
+            url = f"api/queries/{id}/favorite"
+        else:
+            return
+
+        return self._post(url, json={})
+
+    def get_query(self, query_id):
+        """GET api/queries/<query_id>"""
+        return self._get(f"api/queries/{query_id}").json()
+
+    def users(self, page=1, page_size=25):
+        """GET api/users"""
         return self._get(
-            "api/queries", params=dict(page=page, page_size=page_size)
+            "api/users", params=dict(page=page, page_size=page_size)
         ).json()
 
-    def dashboards(self, page=1, page_size=25):
+    def dashboards(self, page=1, page_size=25, only_favorites=False):
         """GET api/dashboards"""
+
+        target_url = "api/dashboards/favorites" if only_favorites else "api/dashboards"
+
+        return self._get(target_url, params=dict(page=page, page_size=page_size)).json()
+
+    def get_dashboard(self, id):
+        """GET api/dashboards/<id>"""
+
         return self._get(
-            "api/dashboards", params=dict(page=page, page_size=page_size)
+            f"api/dashboards/{id}",
+        ).json()
+
+    def get_data_sources(self):
+        """GET api/data_sources"""
+        return self._get(
+            "api/data_sources",
         ).json()
 
     def dashboard(self, slug):
         """GET api/dashboards/{slug}"""
         return self._get("api/dashboards/{}".format(slug)).json()
+
+    def create_query(self, query_json):
+        return self._post("api/queries", json=query_json)
 
     def create_dashboard(self, name):
         return self._post("api/dashboards", json={"name": name}).json()
@@ -97,23 +137,50 @@ class Redash(object):
         path = "api/visualizations/{}".format(viz_id)
         return self._post(path, json=data)
 
-    def paginate(self, resource):
-        """Load all items of a paginated resource"""
-        stop_loading = False
-        page = 1
-        page_size = 100
+    def alerts(self):
+        """GET api/alerts
+        This API endpoint is not paginated."""
+        return self._get("api/alerts").json()
 
-        items = []
+    def get_alert(self, alert_id):
+        """GET api/alerts/<alert_id>"""
+        return self._get(f"api/alerts/{alert_id}").json()
 
-        while not stop_loading:
-            response = resource(page=page, page_size=page_size)
+    def create_alert(self, name, options, query_id):
+        """POST api/alerts to create a new alert"""
 
-            items += response["results"]
-            page += 1
+        payload = dict(
+            name=name,
+            options=options,
+            query_id=query_id,
+        )
+        return self._post(f"api/alerts", json=payload).json()
 
-            stop_loading = response["page"] * response["page_size"] >= response["count"]
+    def update_alert(self, id, name=None, options=None, query_id=None, rearm=None):
 
-        return items
+        payload = dict(name=name, options=options, query_id=query_id, rearm=rearm)
+
+        no_none = {key: val for key, val in payload.items() if val}
+
+        return self._post(f"api/alerts/{id}", json=no_none)
+
+    def paginate(self, resource, page=1, page_size=100, **kwargs):
+        """Load all items of a paginated resource
+
+        NOTE: This might fail due to rate limit (50/hr, 200/day).
+        TODO: Add backoff?
+        """
+
+        response = resource(page=page, page_size=page_size, **kwargs)
+        items = response["results"]
+
+        if response["page"] * response["page_size"] >= response["count"]:
+            return items
+        else:
+            return [
+                *items,
+                *self.paginate(resource, page=page + 1, page_size=page_size, **kwargs),
+            ]
 
     def _get(self, path, **kwargs):
         return self._request("GET", path, **kwargs)
