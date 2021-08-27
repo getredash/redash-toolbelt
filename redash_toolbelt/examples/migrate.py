@@ -163,6 +163,7 @@ def import_queries(orig_client, dest_client):
     print("Import queries...")
 
     queries = orig_client.paginate(orig_client.queries)
+    queries = sorted(queries, key=lambda x: x.get("created_at", 0))
 
     for query in queries:
 
