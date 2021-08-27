@@ -670,6 +670,10 @@ def main(command):
 
     dashboards: migrate dashboards. skips widgets with missing visualizations or users
 
+    alerts: migrate alerts.
+
+    favorites: migrate each users favorite queries and dashboards.
+
     These should be called in that order. Checking the contents of meta.json between steps to confirm
     expected behavior.
     """
@@ -690,12 +694,17 @@ def main(command):
         "favorites": import_favorites,
     }
 
-    this_command = save_meta_wrapper(command_map.get(command))
+    _command = command_map.get(command)
+    if _command is None:
+        print("{} is not a valid command. See --help for instructions")
+        return
 
-    if this_command is None:
+    wrapped = save_meta_wrapper(command_map.get(command))
+
+    if wrapped is None:
         print("No command provided. See --help for instructions")
 
-    this_command(from_client, to_client)
+    return wrapped(from_client, to_client)
 
 
 if __name__ == "__main__":
