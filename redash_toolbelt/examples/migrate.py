@@ -598,8 +598,7 @@ def get_from_dictlist_by_key(l, key, value):
 #
 
 
-# include here any users you already created in the target Redash account.
-# the key is the user id in the origin Redash instance.
+# Don't enter information here. Run `redash-migrate init` to create a copy of this file
 base_meta = {
     "users": {
         "-1": {
