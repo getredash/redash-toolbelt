@@ -102,7 +102,14 @@ def import_users(orig_client, dest_client):
 
         return dest_user_emails == orig_user_emails
 
-    orig_users = orig_client.paginate(orig_client.users)
+    def get_all_users(client):
+
+        active_users = client.paginate(client.users, only_disabled=False)
+        disabled_users = client.paginate(client.users, only_disabled=True)
+
+        return [*active_users, *disabled_users]
+
+    orig_users = get_all_users(orig_client)
     dest_users = dest_client.paginate(dest_client.users)
 
     # Check if the user list has already been synced between orig, dest, and meta
@@ -143,6 +150,7 @@ def import_users(orig_client, dest_client):
             "id": new_user["id"],
             "email": new_user["email"],
             "invite_link": PRESERVE_INVITE_LINKS and new_user["invite_link"] or "",
+            "disabled": user["is_disabled"],
         }
 
     dest_users = dest_client.paginate(dest_client.users)
@@ -157,6 +165,25 @@ def import_users(orig_client, dest_client):
                 len(dest_user_emails), len(org_user_emails)
             )
         )
+
+
+def disable_users(orig_client, dest_client):
+
+    count_disabled = 0
+    for orig_id, dest_user in meta["users"].items():
+        if dest_user.get("disabled") is True:
+            print(
+                f'Origin user {orig_id} is disabled at origin. Disabling {dest_user["id"]} at destination'
+            )
+            dest_client.disable_user(dest_user["id"])
+            count_disabled += 1
+        else:
+            continue
+
+    if count_disabled > 0:
+        print(f"{count_disabled} users were disabled in the destination instance")
+    else:
+        print("No users were disabled")
 
 
 def import_queries(orig_client, dest_client):
@@ -208,7 +235,14 @@ def import_queries(orig_client, dest_client):
         try:
             response = user_client.create_query(data)
         except Exception as e:
-            print("Query {} - FAIL - {}".format(origin_id, e))
+            if e.response.status_code == 400:
+                if meta["users"][query["user"]["id"]]["disabled"]:
+                    msg = "400 Error - Destination user {} is disabled. Query create failed!".format(
+                        meta["users"][query["user"]["id"]]["id"]
+                    )
+                else:
+                    msg = str(e)
+            print("Query {} - FAIL - {}".format(origin_id, msg))
             continue
 
         destination_id = response.json()["id"]
@@ -692,6 +726,7 @@ def main(command):
         "dashboards": import_dashboards,
         "alerts": import_alerts,
         "favorites": import_favorites,
+        "disable_users": disable_users,
     }
 
     _command = command_map.get(command)

@@ -37,11 +37,16 @@ class Redash(object):
         """GET api/queries/<query_id>"""
         return self._get(f"api/queries/{query_id}").json()
 
-    def users(self, page=1, page_size=25):
+    def users(self, page=1, page_size=25, only_disabled=False):
         """GET api/users"""
-        return self._get(
-            "api/users", params=dict(page=page, page_size=page_size)
-        ).json()
+
+        params = dict(page=page, page_size=page_size, disabled=only_disabled)
+
+        return self._get("api/users", params=params).json()
+
+    def disable_user(self, user_id):
+        """POST api/users/<user_id>/disable"""
+        return self._post(f"api/users/{user_id}/disable").json()
 
     def dashboards(self, page=1, page_size=25, only_favorites=False):
         """GET api/dashboards"""
