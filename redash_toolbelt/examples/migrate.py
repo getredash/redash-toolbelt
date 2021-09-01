@@ -265,7 +265,15 @@ def fix_queries(orig_client, dest_client):
     """
     print("Updating queries options...")
 
+    if not meta["flags"].get("fixed_queries"):
+        meta["flags"]["fixed_queries"] = []
+
     for query_id, new_query_id in meta["queries"].items():
+
+        if new_query_id in meta["flags"]["fixed_queries"]:
+            print(f"Destination query {new_query_id} - SKIP - Already fixed")
+            continue
+
         query = orig_client.get_query(query_id)
         orig_user_id = query["user"]["id"]
 
@@ -284,6 +292,8 @@ def fix_queries(orig_client, dest_client):
         )["api_key"]
         user_client = Redash(dest_client.redash_url, user_api_key)
         user_client.update_query(new_query_id, {"options": options})
+
+        meta["flags"]["fixed_queries"].append(new_query_id)
 
 
 def import_visualizations(orig_client, dest_client):
