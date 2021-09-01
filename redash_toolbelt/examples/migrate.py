@@ -700,16 +700,18 @@ except Exception as e:
     "command",
 )
 def main(command):
-    """Redash migration command. Can be used to migrate objects (queries, visualizations, dashboards)
+    """Redash migration tool. Can be used to migrate objects (users, queries, visualizations, dashboards, alerts, and favorites)
     from one Redash instance to another.
 
-    Usage: python migrate.py <COMMAND>
+    Usage: redash-migrate <command>
 
     Available commands are:
 
+    init: create a meta.json template file in your working directory
+
     check_data_sources: compare the data sources written to meta.json against those visible on origin and destination Redash instances
 
-    users: migrate users
+    users: migrate all users, both disabled and enabled, from the origin instance to the destination instance
 
     queries: migrate queries and then fix any query-based dropdown list parameter references. Skips queries from users not in meta.json
 
@@ -717,12 +719,13 @@ def main(command):
 
     dashboards: migrate dashboards. skips widgets with missing visualizations or users
 
-    alerts: migrate alerts.
+    alerts: migrate alerts. skips alerts that point at queries that were not migrated. This command does not migrate alert destination configurations!
 
-    favorites: migrate each users favorite queries and dashboards.
+    favorites: migrate favorite status information from origin to destination
 
-    These should be called in that order. Checking the contents of meta.json between steps to confirm
-    expected behavior.
+    disable_users: disable users at the destination that are disabled at the origin
+
+    Commands should be called in the order specified here. Check meta.json between steps to confirm expected behavior.
     """
     if command == "init":
         print("meta.json initialized")
