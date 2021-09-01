@@ -125,6 +125,8 @@ def import_users(orig_client, dest_client):
 
     # Users are missing from dest and meta (default case)
     # Add these users to the dest instance and add them to meta.json
+
+    orig_users = sorted(orig_users, key=lambda x: x.get("created_at", 0))
     for user in orig_users:
         print("   importing: {}".format(user["id"]))
         data = {"name": user["name"], "email": user["email"]}
@@ -341,6 +343,7 @@ def import_dashboards(orig_client, dest_client):
     print("Importing dashboards...")
 
     dashboards = orig_client.paginate(orig_client.dashboards)
+    dashboards = sorted(dashboards, key=lambda x: x.get("created_at", 0))
 
     for dashboard in dashboards:
         if dashboard["slug"] in meta["dashboards"]:
@@ -406,6 +409,7 @@ def import_dashboards(orig_client, dest_client):
 def import_alerts(orig_client, dest_client):
 
     alerts = orig_client.alerts()
+    alerts = sorted(alerts, key=lambda x: x.get("created_at", 0))
     for a in alerts:
 
         orig_id = a.get("id")
