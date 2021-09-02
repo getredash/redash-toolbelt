@@ -152,7 +152,7 @@ def import_users(orig_client, dest_client):
             "id": new_user["id"],
             "email": new_user["email"],
             "invite_link": PRESERVE_INVITE_LINKS and new_user["invite_link"] or "",
-            "disabled": user["is_disabled"],
+            "disabled": False,
         }
 
     dest_users = dest_client.paginate(dest_client.users)
