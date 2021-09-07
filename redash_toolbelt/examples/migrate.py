@@ -237,14 +237,7 @@ def import_queries(orig_client, dest_client):
         try:
             response = user_client.create_query(data)
         except Exception as e:
-            if e.response.status_code == 400:
-                if meta["users"][query["user"]["id"]]["disabled"]:
-                    msg = "400 Error - Destination user {} is disabled. Query create failed!".format(
-                        meta["users"][query["user"]["id"]]["id"]
-                    )
-                else:
-                    msg = str(e)
-            print("Query {} - FAIL - {}".format(origin_id, msg))
+            print("Query {} - FAIL - {}".format(origin_id, e))
             continue
 
         destination_id = response.json()["id"]
