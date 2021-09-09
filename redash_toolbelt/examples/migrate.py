@@ -189,6 +189,9 @@ def disable_users(orig_client, dest_client):
 
 
 def import_queries(orig_client, dest_client):
+
+    queries_that_depend_on_queries = []
+
     print("Import queries...")
 
     queries = orig_client.paginate(orig_client.queries)
@@ -196,59 +199,87 @@ def import_queries(orig_client, dest_client):
 
     for query in queries:
 
-        origin_id = query["id"]
-
-        data_source_id = DATA_SOURCES.get(query["data_source_id"])
-
-        if origin_id in meta["queries"] or str(origin_id) in meta["queries"]:
-            print("Query {} - SKIP - was already imported".format(origin_id))
+        options = query["options"]
+        already_delayed = False
+        for p in options.get("parameters", []):
+            if not already_delayed and "queryId" in p:
+                queries_that_depend_on_queries.append(query)
+                already_delayed = True
+                break
+        
+        # Wait to import this query until all others have been imported
+        if already_delayed:
             continue
 
-        if data_source_id is None:
-            print(
-                "Query {} - SKIP - data source has not been mapped ({})".format(
-                    origin_id, query["data_source_id"]
+        def import_query_subroutine(query):
+            origin_id = query["id"]
+            
+
+            data_source_id = DATA_SOURCES.get(query["data_source_id"])
+
+            if origin_id in meta["queries"] or str(origin_id) in meta["queries"]:
+                print("Query {} - SKIP - was already imported".format(origin_id))
+                return
+
+            if data_source_id is None:
+                print(
+                    "Query {} - SKIP - data source has not been mapped ({})".format(
+                        origin_id, query["data_source_id"]
+                    )
                 )
-            )
-            continue
+                return
 
-        data = {
-            "data_source_id": data_source_id,
-            "query": query["query"],
-            "is_archived": query["is_archived"],
-            "schedule": convert_schedule(query["schedule"]),
-            "description": query["description"],
-            "name": query["name"],
-            "options": query["options"],
-        }
+            data = {
+                "data_source_id": data_source_id,
+                "query": query["query"],
+                "is_archived": query["is_archived"],
+                "schedule": convert_schedule(query["schedule"]),
+                "description": query["description"],
+                "name": query["name"],
+                "options": query["options"],
+            }
 
-        try:
-            user_api_key = user_with_api_key(query["user"]["id"], dest_client)[
-                "api_key"
-            ]
-        except UserNotFoundException as e:
-            print("Query {} - FAIL - {}".format(query["id"], e))
-            continue
+            try:
+                user_api_key = user_with_api_key(query["user"]["id"], dest_client)[
+                    "api_key"
+                ]
+            except UserNotFoundException as e:
+                print("Query {} - FAIL - {}".format(query["id"], e))
+                return
 
-        print("Query {} - OK  - importing".format(origin_id))
+            print("Query {} - OK  - importing".format(origin_id))
 
-        user_client = Redash(DESTINATION, user_api_key)
+            user_client = Redash(DESTINATION, user_api_key)
 
-        try:
-            response = user_client.create_query(data)
-        except Exception as e:
-            print("Query {} - FAIL - {}".format(origin_id, e))
-            continue
+            try:
+                response = user_client.create_query(data)
+            except Exception as e:
+                print("Query {} - FAIL - {}".format(origin_id, e))
+                return
 
-        destination_id = response.json()["id"]
-        meta["queries"][query["id"]] = destination_id
+            destination_id = response.json()["id"]
+            meta["queries"][query["id"]] = destination_id
 
-        # New queries are always saved as drafts.
-        # Need to sync the ORIGIN draft status to DESTINATION.
-        if not query["is_draft"]:
-            response = dest_client.update_query(destination_id, {"is_draft": False})
+            # New queries are always saved as drafts.
+            # Need to sync the ORIGIN draft status to DESTINATION.
+            if not query["is_draft"]:
+                response = dest_client.update_query(destination_id, {"is_draft": False})
 
-    fix_queries(orig_client, dest_client)
+        import_query_subroutine(query)
+
+    for query in queries_that_depend_on_queries:
+
+        # fix query reference
+        options = query["options"]
+        for p in options.get("parameters", []):
+            if "queryId" in p:
+                p["queryId"] = meta["queries"].get(p["queryId"])
+
+        query["options"] = options
+
+        import_query_subroutine(query)
+
+    # fix_queries(orig_client, dest_client)
 
 
 def fix_queries(orig_client, dest_client):
