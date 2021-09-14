@@ -73,12 +73,15 @@ class Redash(object):
         return self._get("api/dashboards/{}".format(slug)).json()
 
     def create_query(self, query_json):
+        """POST api/queries with query_json object"""
         return self._post("api/queries", json=query_json)
 
     def create_dashboard(self, name):
+        """POST api/dashboards to create a dashboard with name"""
         return self._post("api/dashboards", json={"name": name}).json()
 
     def update_dashboard(self, dashboard_id, properties):
+        """PUT api/dashboard/{dashboard_id} and update json object properties"""
         return self._post(
             "api/dashboards/{}".format(dashboard_id), json=properties
         ).json()
