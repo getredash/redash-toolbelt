@@ -206,14 +206,13 @@ def import_queries(orig_client, dest_client):
                 queries_that_depend_on_queries.append(query)
                 already_delayed = True
                 break
-        
+
         # Wait to import this query until all others have been imported
         if already_delayed:
             continue
 
         def import_query_subroutine(query):
             origin_id = query["id"]
-            
 
             data_source_id = DATA_SOURCES.get(query["data_source_id"])
 
@@ -491,7 +490,7 @@ def import_favorites(orig_client, dest_client):
     for orig_id, data in meta["users"].items():
 
         user_dest = user_with_api_key(orig_id, dest_client)
-        user_dest_api_key = user_dest['api_key']
+        user_dest_api_key = user_dest["api_key"]
         user_orig_api_key = get_api_key(orig_client, orig_id)
 
         if "disabled" in data and data["disabled"]:
@@ -499,9 +498,7 @@ def import_favorites(orig_client, dest_client):
             continue
 
         orig_user_client = Redash(ORIGIN, user_orig_api_key)
-        dest_user_client = Redash(
-            DESTINATION, user_dest_api_key
-        )
+        dest_user_client = Redash(DESTINATION, user_dest_api_key)
 
         favorite_queries = orig_user_client.paginate(
             orig_user_client.queries, only_favorites=True
