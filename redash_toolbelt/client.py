@@ -87,6 +87,7 @@ class Redash(object):
         ).json()
 
     def create_widget(self, dashboard_id, visualization_id, text, options):
+        """POST api/widgets for corresponding dashboard_id, visualization_id, text, options"""
         data = {
             "dashboard_id": dashboard_id,
             "visualization_id": visualization_id,
@@ -97,6 +98,7 @@ class Redash(object):
         return self._post("api/widgets", json=data)
 
     def duplicate_dashboard(self, slug, new_name=None):
+        """Creates a duplicate dashboard named Copy of current dashboard name passed by slug"""
         current_dashboard = self.dashboard(slug)
 
         if new_name is None:
@@ -119,7 +121,9 @@ class Redash(object):
         return new_dashboard
 
     def duplicate_query(self, query_id, new_name=None):
-
+        """Creates a duplicate query corresponding to query_id passed
+           POST api/queries/{query_id}/fork 
+        """
         response = self._post(f"api/queries/{query_id}/fork")
         new_query = response.json()
 
@@ -191,9 +195,11 @@ class Redash(object):
             ]
 
     def _get(self, path, **kwargs):
+        """Creates a request object to be passed as GET request"""
         return self._request("GET", path, **kwargs)
 
     def _post(self, path, **kwargs):
+        """Creates a request object to be passed as POST request"""
         return self._request("POST", path, **kwargs)
 
     def _request(self, method, path, **kwargs):
