@@ -122,7 +122,7 @@ class Redash(object):
 
     def duplicate_query(self, query_id, new_name=None):
         """Creates a duplicate query corresponding to query_id passed
-           POST api/queries/{query_id}/fork 
+        POST api/queries/{query_id}/fork
         """
         response = self._post(f"api/queries/{query_id}/fork")
         new_query = response.json()
