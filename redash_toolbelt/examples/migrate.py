@@ -490,10 +490,17 @@ def import_favorites(orig_client, dest_client):
 
     for orig_id, data in meta["users"].items():
 
+        user_dest = user_with_api_key(orig_id, dest_client)
+        user_dest_api_key = user_dest['api_key']
         user_orig_api_key = get_api_key(orig_client, orig_id)
+
+        if "disabled" in data and data["disabled"]:
+            print(f"User {user_dest['email']} is disabled. Skipping import.")
+            continue
+
         orig_user_client = Redash(ORIGIN, user_orig_api_key)
         dest_user_client = Redash(
-            DESTINATION, user_with_api_key(orig_id, dest_client)["api_key"]
+            DESTINATION, user_dest_api_key
         )
 
         favorite_queries = orig_user_client.paginate(
