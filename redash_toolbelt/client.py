@@ -73,7 +73,15 @@ class Redash(object):
         return self._get("api/dashboards/{}".format(slug)).json()
 
     def create_query(self, query_json):
-        """POST api/queries with query_json object"""
+        """POST api/queries with query_json object
+        
+        This method calls redash.handlers.queries.QueryListResource.post
+        
+        Args:
+          query_json: An object representing a new query to be created. Must contain the following keys:
+            - query: the query text
+            - data_source_id: a valid data source id
+            - title: the name of this query"""
         return self._post("api/queries", json=query_json)
 
     def create_dashboard(self, name):
