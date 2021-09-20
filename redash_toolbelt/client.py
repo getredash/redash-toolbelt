@@ -69,7 +69,13 @@ class Redash(object):
         ).json()
 
     def dashboard(self, slug):
-        """GET api/dashboards/{slug}"""
+        """GET api/dashboards/{slug}
+
+        This method calls redash.handlers.dashboards.DashboardResource.get
+
+        Args:
+            slug[string]: A string value used to represend dashboard you want to request
+        """
         return self._get("api/dashboards/{}".format(slug)).json()
 
     def create_query(self, query_json):
@@ -78,24 +84,57 @@ class Redash(object):
         This method calls redash.handlers.queries.QueryListResource.post
 
         Args:
-          query_json: An object representing a new query to be created. Must contain the following keys:
+            query_json[json]: An object representing a new query to be created. Must contain
+            the following keys:
             - query: the query text
             - data_source_id: a valid data source id
-            - title: the name of this query"""
+            - title: the name of this query
+        """
         return self._post("api/queries", json=query_json)
 
     def create_dashboard(self, name):
-        """POST api/dashboards to create a dashboard with name"""
+        """POST api/dashboards to create a dashboard with name
+
+        This method calls redash.handlers.dashboards.DashboardListResource.get
+
+        Args:
+            name[string]: Dashboard name
+        """
         return self._post("api/dashboards", json={"name": name}).json()
 
     def update_dashboard(self, dashboard_id, properties):
-        """PUT api/dashboard/{dashboard_id} and update json object properties"""
+        """PUT api/dashboard/{dashboard_id} and update json object properties
+
+        This method calls redash.handlers.dashboards.DashboardResource.post
+
+        Args:
+            dashboard_id[number]:  Id of dashboard to update.
+            properties[json]: An object representing which all properties of the dashboards
+            are to be update. It can contain following properties:
+                - name[string]: Name of dashboard
+                - layout[list]:
+                - version: the corresponding dashboard version
+                - tags[list]: Tags for representing dashboard.
+                - is_draft[boolean]: Check if the dashboard is in draft stage or published
+                - is_archived[boolean]: Is the dashboard archived or not
+                - dashboard_filters_enabled[boolean]: Check if filters are enabled or not
+                - options[json]: If any field is set in options json field in dashboard. Default value is {}
+        """
         return self._post(
             "api/dashboards/{}".format(dashboard_id), json=properties
         ).json()
 
     def create_widget(self, dashboard_id, visualization_id, text, options):
-        """POST api/widgets for corresponding dashboard_id, visualization_id, text, options"""
+        """POST api/widgets for creating a new widget
+
+        This method calls the redash.handlers.widgets.WidgetListResource.post
+
+        Args:
+            dashboard_id[number]: The ID for the dashboard being added to create widget
+            visualization_id[number]: The ID of the visualization to put in this widget
+            text[string]: Text box contents
+            options[object]: Widget Options
+        """
         data = {
             "dashboard_id": dashboard_id,
             "visualization_id": visualization_id,
@@ -106,7 +145,14 @@ class Redash(object):
         return self._post("api/widgets", json=data)
 
     def duplicate_dashboard(self, slug, new_name=None):
-        """Creates a duplicate dashboard named Copy of current dashboard name passed by slug"""
+        """Creates a duplicate dashboard named Copy of current dashboard name passed by slug
+
+        This method calls create_dashboard, update_dashboard, create_widget methods
+
+        Args:
+            slug[string] - Dashboard name slug of dashboard to be duplicated
+            new_name[string] - The new name to create a duplicate dashboard
+        """
         current_dashboard = self.dashboard(slug)
 
         if new_name is None:
@@ -129,8 +175,15 @@ class Redash(object):
         return new_dashboard
 
     def duplicate_query(self, query_id, new_name=None):
-        """Creates a duplicate query corresponding to query_id passed
+        """Creates a duplicate query corresponding to query_id passed using
         POST api/queries/{query_id}/fork
+
+        This method calls redash.handlers.queries.QueryForkResource.post
+
+        Args:
+            query_id[number] - ID of query to fork
+            new_name[string] - The new name to be used for duplicating a query by
+            updating the query.
         """
         response = self._post(f"api/queries/{query_id}/fork")
         new_query = response.json()
