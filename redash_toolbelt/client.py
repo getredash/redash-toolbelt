@@ -74,9 +74,9 @@ class Redash(object):
 
     def create_query(self, query_json):
         """POST api/queries with query_json object
-        
+
         This method calls redash.handlers.queries.QueryListResource.post
-        
+
         Args:
           query_json: An object representing a new query to be created. Must contain the following keys:
             - query: the query text
