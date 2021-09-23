@@ -68,6 +68,22 @@ class Redash(object):
             "api/data_sources",
         ).json()
 
+    def get_data_source(self, id):
+        """GET api/data_sources/<id>"""
+
+        return self._get("api/data_sources/{}".format(id)).json()
+
+    def create_data_source(self, name, _type, options):
+        """POST api/data_sources"""
+
+        payload = {
+            "name": name,
+            "type": _type,
+            "options": options
+        }
+
+        return self._post("api/data_sources", json=payload)
+
     def dashboard(self, slug):
         """GET api/dashboards/{slug}"""
         return self._get("api/dashboards/{}".format(slug)).json()

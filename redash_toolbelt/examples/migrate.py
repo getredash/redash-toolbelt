@@ -88,6 +88,48 @@ def check_data_sources(orig_client, dest_client):
         print("\n\nCheck complete. OK")
 
 
+def import_data_sources(orig_client, dest_client):
+    """Create stub data sources at DESTINATION based on the data sources in ORIGIN."""
+
+    orig_data_sources = orig_client.get_data_sources()
+    allowed_types = {
+        i["type"]: i for i in dest_client._get("api/data_sources/types").json()
+    }
+
+    for ds in orig_data_sources:
+
+        dsid = ds["id"]
+
+        if dsid in meta["data_sources"]:
+            print(
+                "WARNING: origin data source {} -- SKIP -- already exists".format(dsid)
+            )
+            continue
+
+        ds_def = orig_client.get_data_source(dsid)
+
+        if ds_def["type"] not in allowed_types:
+            print(
+                "WARNING: origin data source {} -- SKIP -- destination instance does not support this type: {}".format(
+                    dsid, ds_def["type"]
+                )
+            )
+            continue
+
+        new_data_source_def = {
+            "name": ds_def["name"],
+            "_type": ds_def["type"],
+            "options": ds_def["options"],
+        }
+
+        try:
+            new_ds = dest_client.create_data_source(**new_data_source_def).json()
+            meta["data_sources"][dsid] = new_ds["id"]
+        except Exception as e:
+            print("ERROR: origin data source {} -- FAIL -- could not be imported: {}".format(dsid, str(e)))
+            continue
+
+
 def import_users(orig_client, dest_client):
     """This function expects that the meta object already includes details for admin users on the DEST instance.
     If you already created users on the DEST instance, enter their details into meta before using this function.
@@ -206,14 +248,13 @@ def import_queries(orig_client, dest_client):
                 queries_that_depend_on_queries.append(query)
                 already_delayed = True
                 break
-        
+
         # Wait to import this query until all others have been imported
         if already_delayed:
             continue
 
         def import_query_subroutine(query):
             origin_id = query["id"]
-            
 
             data_source_id = DATA_SOURCES.get(query["data_source_id"])
 
@@ -491,7 +532,7 @@ def import_favorites(orig_client, dest_client):
     for orig_id, data in meta["users"].items():
 
         user_dest = user_with_api_key(orig_id, dest_client)
-        user_dest_api_key = user_dest['api_key']
+        user_dest_api_key = user_dest["api_key"]
         user_orig_api_key = get_api_key(orig_client, orig_id)
 
         if "disabled" in data and data["disabled"]:
@@ -499,9 +540,7 @@ def import_favorites(orig_client, dest_client):
             continue
 
         orig_user_client = Redash(ORIGIN, user_orig_api_key)
-        dest_user_client = Redash(
-            DESTINATION, user_dest_api_key
-        )
+        dest_user_client = Redash(DESTINATION, user_dest_api_key)
 
         favorite_queries = orig_user_client.paginate(
             orig_user_client.queries, only_favorites=True
@@ -642,7 +681,7 @@ base_meta = {
     "dashboards": {},
     "alerts": {},
     "flags": {"viz_import_complete": {}},
-    "data_sources": {"-1": -1234},
+    "data_sources": {},
     "settings": {
         "origin_url": "",
         "origin_admin_api_key": "",
@@ -740,6 +779,8 @@ def main(command):
 
     init: create a meta.json template file in your working directory
 
+    data_sources: create stub data sources in your destination instance. Values for any non-secure fields will be copied from the origin.
+
     check_data_sources: compare the data sources written to meta.json against those visible on origin and destination Redash instances
 
     users: migrate all users, both disabled and enabled, from the origin instance to the destination instance
@@ -766,6 +807,7 @@ def main(command):
     to_client = Redash(DESTINATION, DESTINATION_API_KEY)
 
     command_map = {
+        "data_sources": import_data_sources,
         "check_data_sources": check_data_sources,
         "users": import_users,
         "queries": import_queries,
