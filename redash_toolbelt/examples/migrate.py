@@ -126,8 +126,100 @@ def import_data_sources(orig_client, dest_client):
             new_ds = dest_client.create_data_source(**new_data_source_def).json()
             meta["data_sources"][dsid] = new_ds["id"]
         except Exception as e:
-            print("ERROR: origin data source {} -- FAIL -- could not be imported: {}".format(dsid, str(e)))
+            print(
+                "ERROR: origin data source {} -- FAIL -- could not be imported: {}".format(
+                    dsid, str(e)
+                )
+            )
             continue
+
+
+def import_groups(orig_client, dest_client):
+
+    breakpoint()
+
+    o_groups = orig_client._get("api/groups").json()
+
+    for group in o_groups:
+
+        id = group["id"]
+        name = group["name"]
+
+        if id in meta["groups"]:
+            print(f"Origin group {id} -- SKIP -- Already exists in destination")
+            continue
+
+        # Post to GroupListResource to create the group in the destination
+        resp = dest_client._post("api/groups", json={"name": name}).json()
+        dest_id = resp["id"]
+
+        print(
+            f"Origin group {id} -- OK -- Group created at destination with id {dest_id}"
+        )
+
+        meta["groups"][id] = dest_id
+
+        # Get from GroupMemberListResource
+        members = orig_client._get(f"api/groups/{id}/members").json()
+        if not members:
+            print(f"Origin group {id} -- WARNING -- No members in origin group")
+            continue
+
+        for m in members:
+            dest_member_id = meta["users"].get(m["id"]).get("id")
+            if dest_member_id is None:
+                print(
+                    f"Origin group {id} -- ERROR -- Origin group member {m['id']} not present in destination"
+                )
+                continue
+
+            # Post to GroupMemberListResource
+            resp = dest_client._post(
+                f"api/groups/{dest_id}/members", json={"user_id": dest_member_id}
+            ).json()
+            print(
+                f"Origin group {id} -- OK -- Dest user {dest_member_id} added to {dest_id}"
+            )
+
+        print(
+            f"Origin group {id} -- OK -- Finished copying users into destination group {dest_id}"
+        )
+
+        # Get from GroupDataSourceListResource
+        data_sources = orig_client._get(f"api/groups/{id}/data_sources").json()
+
+        if not data_sources:
+            print(f"Origin group {id} -- WARNING -- No data sources tied to this group")
+            continue
+
+        for d in data_sources:
+            ds_id = d["id"]
+            dest_ds_id = meta["data_sources"].get(ds_id)
+
+            if dest_ds_id is None:
+                print(
+                    f"Origin group {id} -- ERROR -- Origin data source {ds_id} not present in destination"
+                )
+                continue
+
+            # Post to GroupDataSourceListResource
+            resp = dest_client._post(
+                f"api/groups/{dest_id}/data_sources",
+                json={"data_source_id": dest_ds_id},
+            ).json()
+            print(
+                f"Origin group {id} -- OK -- Associated destination group {dest_id} with data source {dest_ds_id}"
+            )
+
+            # Post to GroupDataSourceResource
+            view_only = d.get("view_only", False)
+            resp = dest_client._post(
+                f"api/groups/{dest_id}/data_sources/{dest_ds_id}",
+                json={"view_only": view_only},
+            ).json()
+            print(
+                f"Origin group {id} -- OK -- View only permission on destination group {dest_id} for data source {dest_ds_id} set to {view_only}"
+            )
 
 
 def import_users(orig_client, dest_client):
@@ -682,6 +774,7 @@ base_meta = {
     "alerts": {},
     "flags": {"viz_import_complete": {}},
     "data_sources": {},
+    "groups": {},
     "settings": {
         "origin_url": "",
         "origin_admin_api_key": "",
@@ -748,6 +841,7 @@ try:
     meta["queries"] = {int(key): val for key, val in meta["queries"].items()}
     meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
     meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
+    meta["groups"] = {int(key): val for key, val in meta["groups"].items()}
 
     # The Redash instance you're copying from:
     ORIGIN = meta["settings"]["origin_url"]
@@ -809,6 +903,7 @@ def main(command):
     command_map = {
         "data_sources": import_data_sources,
         "check_data_sources": check_data_sources,
+        "groups": import_groups,
         "users": import_users,
         "queries": import_queries,
         "visualizations": import_visualizations,
