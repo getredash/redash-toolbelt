@@ -370,6 +370,7 @@ def import_queries(orig_client, dest_client):
                 "description": query["description"],
                 "name": query["name"],
                 "options": query["options"],
+                "tags": query["tags"],
             }
 
             try:
@@ -540,7 +541,7 @@ def import_dashboards(orig_client, dest_client):
 
         # Sets published status to match source instance
         not d["is_draft"] and user_client.update_dashboard(
-            new_dash_id, {"is_draft": False}
+            new_dash_id, {"is_draft": False, "tags": d["tags"] }
         )
 
         # recreate widget
