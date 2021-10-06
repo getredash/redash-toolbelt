@@ -76,11 +76,7 @@ class Redash(object):
     def create_data_source(self, name, _type, options):
         """POST api/data_sources"""
 
-        payload = {
-            "name": name,
-            "type": _type,
-            "options": options
-        }
+        payload = {"name": name, "type": _type, "options": options}
 
         return self._post("api/data_sources", json=payload)
 
