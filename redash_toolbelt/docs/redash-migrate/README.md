@@ -14,13 +14,19 @@ redash-migrate - Move data from one instance of Redash to another
 
 ## INSTALLATION
 
-To install it you will need Python 3.6 or above. We recommend that you use a [virtual environment](https://pythonbasics.org/virtualenv/). The `redash-migrate` command is part of our Python API wrapper, called `redash-toolbelt`.
+To install it you will need Python 3.6 or above. We recommend that you use a [virtual environment].
+The `redash-migrate` command is part of our Python API wrapper, called `redash-toolbelt`.
+
+[virtual environment]: https://pythonbasics.org/virtualenv/
 
 ```bash
 pip install --upgrade redash-toolbelt
 ```
 
-This command will update `redash-toolbelt` if you have already installed it. See the [PyPi page](https://pypi.org/project/redash-toolbelt/) for more information. The `redash-migrate` command will now be available.
+This command will update `redash-toolbelt` if you have already installed it. See the [PyPi page] for
+more information. The `redash-migrate` command will now be available.
+
+[PyPi page]: https://pypi.org/project/redash-toolbelt/
 
 ```bash
 redash-migrate --version
@@ -30,20 +36,25 @@ This command will verify your installation.
 
 ## DESCRIPTION
 
-**redash-migrate** is a command-line program to move data from one instance of Redash V10 instance to another . It requires the Python interpreter, version 3.6+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
+**redash-migrate** is a command-line program to move data from one instance of Redash V10 instance
+to another . It requires the Python interpreter, version 3.6+, and it is not platform specific. It
+should work on your Unix box, on Windows or on macOS. It is released to the public domain, which
+means you can modify it, redistribute it or use it however you like.
 
 ```bash
 redash-migrate [COMMAND]
 ```
 ## METAFILE
 
-`redash-migrate` uses a file called `meta.json` to track its state between command executions. And it updates `meta.json` after each command executes. 
+`redash-migrate` uses a file called `meta.json` to track its state between command executions. And
+it updates `meta.json` after each command executes. 
 
 ```bash
 redash-migrate init
 ```
 
-This command creates a `meta.json` file in your working directory. Before you run further commands, you must fill-in the `settings` object:
+This command creates a `meta.json` file in your working directory. Before you run further commands,
+you must fill-in the `settings` object:
 
 ```json
 "settings": {
@@ -55,7 +66,9 @@ This command creates a `meta.json` file in your working directory. Before you ru
 }
 ```
 
-**⚠️&nbsp;&nbsp;Warning**:  Do not share your `meta.json` file with anyone. It contains administrator API keys for your Redash instance. This information is private. If you do share it, reset the admin API keys for your Redash instances immediately.
+**⚠️&nbsp;&nbsp;Warning**:  Do not share your `meta.json` file with anyone. It contains
+administrator API keys for your Redash instance. This information is private. If you do share it,
+reset the admin API keys for your Redash instances immediately.
 
 
 ### SETTINGS
@@ -106,24 +119,36 @@ disable_users         Disable users in the destination instance that are disable
 
 ### RUNNING COMMANDS
 
-Commands are always listed in the correct order. For example, you must import users before you import groups. You must import alert destinations before you import alerts.
+Commands are always listed in the correct order. For example, you must import users before you
+import groups. You must import alert destinations before you import alerts.
 
-With exception of `init` and `check_data_sources`, each command will insert new data into your destination instance. _The origin instance is never modified_. The script only emits GET requests to the origin instance. It emits both GET and POST requests to the destination instance.
+With exception of `init` and `check_data_sources`, each command will insert new data into your
+destination instance. _The origin instance is never modified_. The script only emits GET requests to
+the origin instance. It emits both GET and POST requests to the destination instance.
 
-![Diagram that shows redash-migrate making GET requests to the origin instance and POST requests to the destination instance](redash-migrate-data-flow.png)
+![Diagram that shows redash-migrate making GET requests to the origin instance and POST requests to
+the destination instance](redash-migrate-data-flow.png)
 
-Commands are idempotent. The same query, dashboard, visualization etc. will not be imported twice. If you run `redash-migrate queries` repeatedly, the command will only attempt to import queries that were not successfully migrated during a previous execution.
+Commands are idempotent. The same query, dashboard, visualization etc. will not be imported twice.
+If you run `redash-migrate queries` repeatedly, the command will only attempt to import queries that
+were not successfully migrated during a previous execution.
 
 ## FAQ
 
 ### Who should use redash-migrate?
 
-Customers of Hosted Redash moving their accounts to Open Source (OSS) Redash. Also, anyone needing to move from one instance to another who does not have access to the origin and destination databases (this is rare).
+Customers of Hosted Redash moving their accounts to Open Source (OSS) Redash. Also, anyone needing
+to move from one instance to another who does not have access to the origin and destination
+databases (this is rare).
 ### Who _shouldn't_ use redash-migrate?
 
-Don't use redash-migrate to move between major versions of Redash.  Because redash-migrate uses the REST API to duplicate objects, it depends on the origin and destination instances using the exact same API. If you need to move from Redash V8 -> V10, for example, you should upgrade your V8 instance to V10 and then use redash-migrate to move your data.
+Don't use redash-migrate to move between major versions of Redash.  Because redash-migrate uses the
+REST API to duplicate objects, it depends on the origin and destination instances using the exact
+same API. If you need to move from Redash V8 -> V10, for example, you should upgrade your V8
+instance to V10 and then use redash-migrate to move your data.
 
-You don't need to use redash-migrate if you have access to the origin and destination databases. In these cases you can simply dump the origin database and copy it to the destination server.
+You don't need to use redash-migrate if you have access to the origin and destination databases. In
+these cases you can simply dump the origin database and copy it to the destination server.
 
 
 ### Is there a video that shows how to run redash-migrate
@@ -132,7 +157,9 @@ Not yet. But we're making one. It will be linked here as soon as it's ready.
 
 ### I found a different script online, why should I use redash-migrate instead?
 
-redash-migrate is the officially supported migration tool. We wrote it because the previous migration script did not  work reliably with newer versions of Redash (since V7). But you can use any tool you want. Or fork this one and modify it for your needs.
+redash-migrate is the officially supported migration tool. We wrote it because the previous
+migration script did not  work reliably with newer versions of Redash (since V7). But you can use
+any tool you want. Or fork this one and modify it for your needs.
 
 ### Can I use redash-migrate on Redash versions older than V10?
 
@@ -145,4 +172,6 @@ No. See [who _shouldn't_ use redash-migrate](#who-shouldnt-use-redash-migrate) a
 ## COPYRIGHT
 redash-migrate is released into the public domain by the copyright holders.
 
-This README file was originally written by Jesse Whitehouse and is likewise released to the public domain. This README file is based on the work of Daniel Bolton for youtube-dl with deep gratitude for that effort.
+This README file was originally written by Jesse Whitehouse and is likewise released to the public
+domain. This README file is based on the work of Daniel Bolton for youtube-dl with deep gratitude
+for that effort.
