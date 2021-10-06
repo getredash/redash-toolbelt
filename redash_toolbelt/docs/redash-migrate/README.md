@@ -4,11 +4,13 @@ redash-migrate - Move data from one instance of Redash to another
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
 - [METAFILE](#meta.json)
+  - [SETTINGS](#settings)
 - [COMMANDS](#commands)
+  - [RUNNING COMMANDS](#running-commands)
 - [FAQ](#faq)
-- [DEVELOPER INSTRUCTIONS](#developer-instructions)
-- [BUGS](#bugs)
-COPYRIGHT
+- [DEVELOPER INSTRUCTIONS]
+- [BUGS]
+- [COPYRIGHT](#copyright)
 
 ## INSTALLATION
 
@@ -72,9 +74,7 @@ preserve_invite_links   Whether or not to write user invitation links into meta.
 ```
 
 ## COMMANDS
-
-You can run `redash-migrate --help` to see the available commands. They are listed in the correct order. For example, you must import users before you import groups. You must import alert destinations before you import alerts. 
-
+You can run `redash-migrate --help` to see the available commands. 
 
 ```text
 init                  Create a meta.json template file in your working directory. You must 
@@ -104,47 +104,27 @@ disable_users         Disable users in the destination instance that are disable
                       origin instance.
 ```
 
+### RUNNING COMMANDS
 
-----------------------
+Commands are always listed in the correct order. For example, you must import users before you import groups. You must import alert destinations before you import alerts.
 
-For a video version of this document, click [here](#link-to-youtube-video).
+With exception of `init` and `check_data_sources`, each command will insert new data into your destination instance. _The origin instance is never modified_. The script only emits GET requests to the origin instance. It emits both GET and POST requests to the destination instance.
 
-### _Outline_
-- Intended users
-- Background
-- How does it work
+![Diagram that shows redash-migrate making GET requests to the origin instance and POST requests to the destination instance](redash-migrate-data-flow.png)
 
-## Acknowledgements
-
-Huge thanks to those who have contributed to and beta tested this script, including: 
-
-This document is inspired by the README for [youtube-dl](https://github.com/ytdl-org/youtube-dl).
-
-### _Subheadings_
-
-
-![Migration Data Flow Diagram](redash-migrate-data-flow.png)
-
-
-
-
-## Setup
-
-
-
-## Running the migration
-
-
-### Re-running individual steps
-
+Commands are idempotent. The same query, dashboard, visualization etc. will not be imported twice. If you run `redash-migrate queries` repeatedly, the command will only attempt to import queries that were not successfully migrated during a previous execution.
 
 ## FAQ
 
-### I found a different script online, why should I use yours instead?
+### Is there a video that shows how to run redash-migrate
 
-This migration script is the only one we can support. We wrote it because the previous migration script would no longer work reliably on newer versions of Redash (since V7). You can use any script you want to migrate from one instance to another. But we recommend this one for ease-of-use and because it has been tested by many members of the Redash community.
-- How can I back up my app.redash.io data
+Not yet. But we're making one. It will be linked here as soon as it's ready.
 
+### I found a different script online, why should I use redash-migrate instead?
 
-### How can I back-up my Hosted Redash data?
+redash-migrate is the officially supported migration tool. We wrote it because the previous migration script did not  work reliably with newer versions of Redash (since V7). But you can use any tool you want. Or fork this one and modify it for your needs.
 
+## COPYRIGHT
+redash-migrate is released into the public domain by the copyright holders.
+
+This README file was originally written by Jesse Whitehouse and is likewise released to the public domain. This README file is based on the work of Daniel Bolton for youtube-dl with deep gratitude for that effort.
