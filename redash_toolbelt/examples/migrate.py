@@ -134,9 +134,48 @@ def import_data_sources(orig_client, dest_client):
             continue
 
 
-def import_groups(orig_client, dest_client):
+def import_destinations(orig_client, dest_client):
+    """Create stub alert destinations at DESTINATION based on the alert destinations in ORIGIN."""
 
-    breakpoint()
+    ALLOWED_TYPES = [
+        i["type"] for i in dest_client._get("api/destinations/types").json()
+    ]
+
+    orig_destinations = orig_client._get("api/destinations").json()
+
+    for dest in orig_destinations:
+        id = dest["id"]
+        _type = dest["type"]
+
+        if _type not in ALLOWED_TYPES:
+            print(
+                f"Destination {id} -- SKIP -- Type {_type} is not enabled in destination instance"
+            )
+            continue
+
+        if id in meta["destinations"]:
+            print(
+                f"Destination {id} -- SKIP -- Already present in destination instance"
+            )
+            continue
+
+        details = orig_client._get(f"api/destinations/{id}").json()
+
+        new_data = {"name": dest["name"], "type": _type, "options": details["options"]}
+
+        try:
+            resp = dest_client._post("api/destinations", json=new_data).json()
+            dest_id = resp["id"]
+            meta["destinations"][id] = dest_id
+            print(
+                f"Destination {id} -- OK -- Created stub destination in destination with id {dest_id}"
+            )
+        except Exception as e:
+            print(f"Destination {id} - ERROR - {e}")
+
+ 
+
+def import_groups(orig_client, dest_client):
 
     o_groups = orig_client._get("api/groups").json()
 
@@ -619,6 +658,8 @@ def import_alerts(orig_client, dest_client):
             dest_client.update_alert(id=dest_id, rearm=this_alert.get("rearm"))
             print(f'Alert {this_alert["id"]} - OK - Fixed rearm')
 
+        subscriptions = orig_client._get(f"/api/alerts/{orig_id}/subscriptions").json()
+
 
 def import_favorites(orig_client, dest_client):
 
@@ -776,6 +817,7 @@ base_meta = {
     "flags": {"viz_import_complete": {}},
     "data_sources": {},
     "groups": {},
+    "destinations": {},
     "settings": {
         "origin_url": "",
         "origin_admin_api_key": "",
@@ -843,6 +885,7 @@ try:
     meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
     meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
     meta["groups"] = {int(key): val for key, val in meta["groups"].items()}
+    meta["destinations"] = {int(key): val for key, val in meta["destinations"].items()}
 
     # The Redash instance you're copying from:
     ORIGIN = meta["settings"]["origin_url"]
@@ -933,6 +976,7 @@ def main(command):
         "data_sources": import_data_sources,
         "check_data_sources": check_data_sources,
         "groups": import_groups,
+        "destinations": import_destinations,
         "users": import_users,
         "queries": import_queries,
         "visualizations": import_visualizations,
