@@ -882,16 +882,12 @@ def main(command):
       check_data_sources    Compare the data sources in your origin and destination instances
     
       \b
-      groups                Duplicate group names, member lists, and data source permissions from 
-                            the origin instance into the destination instance.
-    
-      \b
-      destinations          Create stubs of your origin alert destinations in your destination
-                            instance
-    
-      \b
       users                 Duplicate user names, emails, and enabled/disabled status from the
                             origin instance into the destination instance.
+    
+      \b
+      groups                Duplicate group names, member lists, and data source permissions from 
+                            the origin instance into the destination instance.
     
       \b
       queries               Duplicate queries from the origin instance to the destination instance.
@@ -906,6 +902,10 @@ def main(command):
       dashboards            Duplicate dashboards from the origin instance to the destination
                             instance. Skips any dashboard widget whose visualization was not moved
                             using the `visualizations` command.
+    
+      \b
+      destinations          Create stubs of your origin alert destinations in your destination
+                            instance
     
       \b
       alerts                Duplicate alert definitions from the origin instance to the destination

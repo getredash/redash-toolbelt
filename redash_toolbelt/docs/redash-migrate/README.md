@@ -18,13 +18,13 @@ To install it you will need Python 3.6 or above. We recommend that you use a [vi
 pip install --upgrade redash-toolbelt
 ```
 
-This command will update `redash-toolbelt` if you have already installed it. See the [PyPi page](https://pypi.org/project/redash-toolbelt/) for more information. The `redash-migrate` command will now be available. Run
+This command will update `redash-toolbelt` if you have already installed it. See the [PyPi page](https://pypi.org/project/redash-toolbelt/) for more information. The `redash-migrate` command will now be available.
 
 ```bash
 redash-migrate --version
 ```
 
-to verify your installation.
+This command will verify your installation.
 
 ## DESCRIPTION
 
@@ -53,7 +53,7 @@ This command creates a `meta.json` file in your working directory. Before you ru
 }
 ```
 
-**⚠️&nbsp;&nbsp;Warning**:  Do not share your `meta.json` file with anyone. It contains administrator API keys for your Redash instance. This information is private. If you do share it, reset the API keys for your Redash instances immediately.
+**⚠️&nbsp;&nbsp;Warning**:  Do not share your `meta.json` file with anyone. It contains administrator API keys for your Redash instance. This information is private. If you do share it, reset the admin API keys for your Redash instances immediately.
 
 
 ### SETTINGS
@@ -73,17 +73,18 @@ preserve_invite_links   Whether or not to write user invitation links into meta.
 
 ## COMMANDS
 
+You can run `redash-migrate --help` to see the available commands. They are listed in the correct order. For example, you must import users before you import groups. You must import alert destinations before you import alerts. 
+
+
 ```text
 init                  Create a meta.json template file in your working directory. You must 
                       populate the `settings` object within meta.json before proceeding.
 data_sources          Create stubs of your origin data sources in your destination instance
 check_data_sources    Compare the data sources in your origin and destination instances
-groups                Duplicate group names, member lists, and data source permissions from 
-                      the origin instance into the destination instance.
-destinations          Create stubs of your origin alert destinations in your destination
-                      instance
 users                 Duplicate user names, emails, and enabled/disabled status from the
                       origin instance into the destination instance.
+groups                Duplicate group names, member lists, and data source permissions from 
+                      the origin instance into the destination instance.
 queries               Duplicate queries from the origin instance to the destination instance.
                       Skips queries with an unknown destination data source or user.
 visualizations        Duplicate visualizations from the origin instance to the destination
@@ -92,6 +93,8 @@ visualizations        Duplicate visualizations from the origin instance to the d
 dashboards            Duplicate dashboards from the origin instance to the destination
                       instance. Skips any dashboard widget whose visualization was not moved
                       using the `visualizations` command.
+destinations          Create stubs of your origin alert destinations in your destination
+                      instance
 alerts                Duplicate alert definitions from the origin instance to the destination
                       instance. Skips alerts that point to queries that were not migrated by
                       the `queries` command. Run the `destinations` command first.
