@@ -541,7 +541,7 @@ def import_dashboards(orig_client, dest_client):
 
         # Sets published status to match source instance
         not d["is_draft"] and user_client.update_dashboard(
-            new_dash_id, {"is_draft": False, "tags": d["tags"] }
+            new_dash_id, {"is_draft": False, "tags": d["tags"]}
         )
 
         # recreate widget
@@ -872,50 +872,50 @@ def main(command):
     Commands:
 
       \b
-      init                  Create a meta.json template file in your working directory. You must 
+      init                  Create a meta.json template file in your working directory. You must
                             populate the `settings` object within meta.json before proceeding.
-    
+
       \b
       data_sources          Create stubs of your origin data sources in your destination instance
-    
+
       \b
       check_data_sources    Compare the data sources in your origin and destination instances
-    
+
       \b
       users                 Duplicate user names, emails, and enabled/disabled status from the
                             origin instance into the destination instance.
-    
+
       \b
-      groups                Duplicate group names, member lists, and data source permissions from 
+      groups                Duplicate group names, member lists, and data source permissions from
                             the origin instance into the destination instance.
-    
+
       \b
       queries               Duplicate queries from the origin instance to the destination instance.
                             Skips queries with an unknown destination data source or user.
-    
+
       \b
       visualizations        Duplicate visualizations from the origin instance to the destination
                             instance. Only duplicates visualizations for queries moved by the
                             `queries` command.
-    
+
       \b
       dashboards            Duplicate dashboards from the origin instance to the destination
                             instance. Skips any dashboard widget whose visualization was not moved
                             using the `visualizations` command.
-    
+
       \b
       destinations          Create stubs of your origin alert destinations in your destination
                             instance
-    
+
       \b
       alerts                Duplicate alert definitions from the origin instance to the destination
                             instance. Skips alerts that point to queries that were not migrated by
                             the `queries` command. Run the `destinations` command first.
-    
+
       \b
-      favorites             Duplicate favorite flags on queries and dashboards from the origin 
+      favorites             Duplicate favorite flags on queries and dashboards from the origin
                             instance to the destination instance.
-    
+
       \b
       disable_users         Disable users in the destination instance that are disabled in the
                             origin instance.
