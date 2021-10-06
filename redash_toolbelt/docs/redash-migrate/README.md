@@ -30,7 +30,7 @@ This command will verify your installation.
 
 ## DESCRIPTION
 
-**redash-migrate** is a command-line program to move data from one Redash instance to another . It requires the Python interpreter, version 3.6+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
+**redash-migrate** is a command-line program to move data from one instance of Redash V10 instance to another . It requires the Python interpreter, version 3.6+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
 
 ```bash
 redash-migrate [COMMAND]
@@ -116,6 +116,16 @@ Commands are idempotent. The same query, dashboard, visualization etc. will not 
 
 ## FAQ
 
+### Who should use redash-migrate?
+
+Customers of Hosted Redash moving their accounts to Open Source (OSS) Redash. Also, anyone needing to move from one instance to another who does not have access to the origin and destination databases (this is rare).
+### Who _shouldn't_ use redash-migrate?
+
+Don't use redash-migrate to move between major versions of Redash.  Because redash-migrate uses the REST API to duplicate objects, it depends on the origin and destination instances using the exact same API. If you need to move from Redash V8 -> V10, for example, you should upgrade your V8 instance to V10 and then use redash-migrate to move your data.
+
+You don't need to use redash-migrate if you have access to the origin and destination databases. In these cases you can simply dump the origin database and copy it to the destination server.
+
+
 ### Is there a video that shows how to run redash-migrate
 
 Not yet. But we're making one. It will be linked here as soon as it's ready.
@@ -123,6 +133,14 @@ Not yet. But we're making one. It will be linked here as soon as it's ready.
 ### I found a different script online, why should I use redash-migrate instead?
 
 redash-migrate is the officially supported migration tool. We wrote it because the previous migration script did not  work reliably with newer versions of Redash (since V7). But you can use any tool you want. Or fork this one and modify it for your needs.
+
+### Can I use redash-migrate on Redash versions older than V10?
+
+We test redash-migrate on Redash V10 and newer. It will probably work on V9 but no earlier.
+
+### Can I use redash-migrate to move between versions?
+
+No. See [who _shouldn't_ use redash-migrate](#who-shouldnt-use-redash-migrate) above.
 
 ## COPYRIGHT
 redash-migrate is released into the public domain by the copyright holders.
