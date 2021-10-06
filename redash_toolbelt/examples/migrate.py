@@ -173,7 +173,6 @@ def import_destinations(orig_client, dest_client):
         except Exception as e:
             print(f"Destination {id} - ERROR - {e}")
 
- 
 
 def import_groups(orig_client, dest_client):
 
