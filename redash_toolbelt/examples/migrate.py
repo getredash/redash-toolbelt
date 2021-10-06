@@ -869,31 +869,58 @@ def main(command):
     """Redash migration tool. Can be used to migrate objects (users, queries, visualizations, dashboards, alerts, and favorites)
     from one Redash instance to another.
 
-    Usage: redash-migrate <command>
+    Commands:
 
-    Available commands are:
+      \b
+      init                  Create a meta.json template file in your working directory. You must 
+                            populate the `settings` object within meta.json before proceeding.
+    
+      \b
+      data_sources          Create stubs of your origin data sources in your destination instance
+    
+      \b
+      check_data_sources    Compare the data sources in your origin and destination instances
+    
+      \b
+      groups                Duplicate group names, member lists, and data source permissions from 
+                            the origin instance into the destination instance.
+    
+      \b
+      destinations          Create stubs of your origin alert destinations in your destination
+                            instance
+    
+      \b
+      users                 Duplicate user names, emails, and enabled/disabled status from the
+                            origin instance into the destination instance.
+    
+      \b
+      queries               Duplicate queries from the origin instance to the destination instance.
+                            Skips queries with an unknown destination data source or user.
+    
+      \b
+      visualizations        Duplicate visualizations from the origin instance to the destination
+                            instance. Only duplicates visualizations for queries moved by the
+                            `queries` command.
+    
+      \b
+      dashboards            Duplicate dashboards from the origin instance to the destination
+                            instance. Skips any dashboard widget whose visualization was not moved
+                            using the `visualizations` command.
+    
+      \b
+      alerts                Duplicate alert definitions from the origin instance to the destination
+                            instance. Skips alerts that point to queries that were not migrated by
+                            the `queries` command. Run the `destinations` command first.
+    
+      \b
+      favorites             Duplicate favorite flags on queries and dashboards from the origin 
+                            instance to the destination instance.
+    
+      \b
+      disable_users         Disable users in the destination instance that are disabled in the
+                            origin instance.
 
-    init: create a meta.json template file in your working directory
-
-    data_sources: create stub data sources in your destination instance. Values for any non-secure fields will be copied from the origin.
-
-    check_data_sources: compare the data sources written to meta.json against those visible on origin and destination Redash instances
-
-    users: migrate all users, both disabled and enabled, from the origin instance to the destination instance
-
-    queries: migrate queries and then fix any query-based dropdown list parameter references. Skips queries from users not in meta.json
-
-    visualizations: migrate visualizations for queries that successfully migrated
-
-    dashboards: migrate dashboards. skips widgets with missing visualizations or users
-
-    alerts: migrate alerts. skips alerts that point at queries that were not migrated. This command does not migrate alert destination configurations!
-
-    favorites: migrate favorite status information from origin to destination
-
-    disable_users: disable users at the destination that are disabled at the origin
-
-    Commands should be called in the order specified here. Check meta.json between steps to confirm expected behavior.
+      Commands should be called in the order specified here. Check meta.json between steps to
     """
     if command == "init":
         print("meta.json initialized")
