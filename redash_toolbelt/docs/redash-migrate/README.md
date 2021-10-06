@@ -52,10 +52,9 @@ This command creates a `meta.json` file in your working directory. Before you ru
     "preserve_invite_links": true
 }
 ```
-<div style="background: #F7F9F9;  border-left: 5px solid #d44946;  padding: 1em; display: flex; flex-flow: row nowrap; align-items: center; gap: 2em; margin-right: auto">
-    <span style="font-size: 30pt">⚠️</span>
-    <p style="margin: auto; ">Do not share your <code>meta.json</code> file with anyone. It contains administrator API keys for your Redash instance. This information is private. If you do share it, reset the API keys for your Redash instances immediately.</p>
-</div>
+
+**⚠️&nbsp;&nbsp;Warning**:  Do not share your `meta.json` file with anyone. It contains administrator API keys for your Redash instance. This information is private. If you do share it, reset the API keys for your Redash instances immediately.
+
 
 ### SETTINGS
 ```text
