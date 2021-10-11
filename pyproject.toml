@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "redash_toolbelt"
-version = "0.1.5"
+version = "0.1.6"
 description = "Redash API client and tools to manage your instance."
 authors = ["Redash Maintainers"]
 license = "BSD-2-Clause"
 homepage = "https://github.com/getredash/redash-toolbelt"
-repository = ""https://github.com/getredash/redash-toolbelt"
+repository = "https://github.com/getredash/redash-toolbelt"
 readme = "README.md"
 
 packages = [
