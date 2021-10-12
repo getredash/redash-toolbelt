@@ -497,7 +497,7 @@ def import_visualizations(orig_client, dest_client):
 
     for query_id, new_query_id in meta["queries"].items():
 
-        if meta.get("flags", {}).get("viz_import_complete", {}).get(query_id):
+        if meta.get("flags", {}).get("viz_import_complete", {}).get(str(query_id)):
             print(
                 "Query {} - SKIP - All visualisations already imported".format(query_id)
             )
@@ -542,7 +542,7 @@ def import_visualizations(orig_client, dest_client):
 
                 meta["visualizations"][v["id"]] = response.json()["id"]
 
-        meta["flags"]["viz_import_complete"][query_id] = True
+        meta["flags"]["viz_import_complete"][str(query_id)] = True
 
 
 def import_dashboards(orig_client, dest_client):
