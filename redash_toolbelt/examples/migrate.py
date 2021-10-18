@@ -176,10 +176,7 @@ def import_destinations(orig_client, dest_client):
 
 def import_groups(orig_client, dest_client):
 
-    BUILTINS = {
-        'admin': 1,
-        'default': 2
-    }
+    BUILTINS = {"admin": 1, "default": 2}
 
     o_groups = orig_client._get("api/groups").json()
 
@@ -199,11 +196,11 @@ def import_groups(orig_client, dest_client):
         # If so, skip posting to GroupListResource and restore it to a blank slate
         elif type_ == "builtin":
             dest_id = BUILTINS.get(name)
-            print(
-                f"Origin group {id} -- MERGING -- Belongs to builtins group"
-            )
+            print(f"Origin group {id} -- MERGING -- Belongs to builtins group")
 
-            initial_sources = dest_client._get(f"api/groups/{dest_id}/data_sources").json()
+            initial_sources = dest_client._get(
+                f"api/groups/{dest_id}/data_sources"
+            ).json()
             if initial_sources is not None:
                 print(
                     f"Preparing builtin group {dest_id} to restore original data source associations..."
