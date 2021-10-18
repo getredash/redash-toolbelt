@@ -168,6 +168,11 @@ Commands are idempotent. The same query, dashboard, visualization etc. will not 
 If you run `redash-migrate queries` repeatedly, the command will only attempt to import queries that
 were not successfully migrated during a previous execution.
 
+**Note**: due to the volume of network requests it creates, redash-migrate may trip the rate limit
+on your destination Redash instance. We recommend you disable rate limiting at the destination 
+for the duration of your migration. On Redash V10 this can be disabled by setting an environment
+variable named `REDASH_RATELIMIT_ENABLED=false`.
+
 ## FAQ
 
 ### Who should use redash-migrate?
