@@ -360,6 +360,49 @@ def disable_users(orig_client, dest_client):
         print("No users were disabled")
 
 
+def remap_queries(orig_client, dest_client):
+    import re
+
+    queries = dest_client.paginate(dest_client.queries)
+    for query in queries:
+        if query["id"] in meta["remapped_queries"]:
+            print("Query {} already remapped".format(query["id"]))
+            continue
+
+        replaced_query = None
+        failed_reason = None
+        for prefix in ["query_", "cached_query_"]:
+            pattern = re.compile(f"{prefix}(\d*)")
+            original_query_ids = pattern.findall(query["query"])
+            if len(original_query_ids) == 0:
+                continue
+
+            if replaced_query is None:
+                replaced_query = query["query"]
+
+            for original_query_id in original_query_ids:
+                try:
+                    migrated_query_id = str(meta["queries"][int(original_query_id)])
+                except Exception as e:
+                    replaced_query = None
+                    failed_reason = "FAILED to remap query {}, could not get query id on the destination instance for original query id {}".format(query["id"], original_query_id)
+                    break
+
+                replaced_query = replaced_query.replace(prefix + original_query_id, prefix + migrated_query_id)
+
+        if failed_reason:
+            print(failed_reason)
+        elif replaced_query:
+            try:
+                dest_client.update_query(query["id"], {"query": replaced_query})
+                print("Remapped migrated query {}".format(query["id"]))
+                meta["remapped_queries"][query["id"]] = True
+            except Exception as e:
+                print("Failure in remapping migrated query {}: {}".format(query["id"], e))
+                return
+        else:
+            print("Query {} does not need to be remapped".format(query["id"]))
+
 def import_queries(orig_client, dest_client):
 
     queries_that_depend_on_queries = []
@@ -416,7 +459,7 @@ def import_queries(orig_client, dest_client):
                     "api_key"
                 ]
             except UserNotFoundException as e:
-                print("Query {} - FAIL - {}".format(query["id"], e))
+                print("Query {} - FAIL (UserNotFoundException) - {}".format(query["id"], e))
                 return
 
             print("Query {} - OK  - importing".format(origin_id))
@@ -426,7 +469,7 @@ def import_queries(orig_client, dest_client):
             try:
                 response = user_client.create_query(data)
             except Exception as e:
-                print("Query {} - FAIL - {}".format(origin_id, e))
+                print("Query {} - FAIL (create failed) - {}".format(origin_id, e))
                 return
 
             destination_id = response.json()["id"]
@@ -833,6 +876,7 @@ def get_from_dictlist_by_key(l, key, value):
 base_meta = {
     "users": {},
     "queries": {},
+    "remapped_queries": {},
     "visualizations": {},
     "dashboards": {},
     "alerts": {},
@@ -999,6 +1043,7 @@ def make_global_meta():
     meta = get_meta()
     meta["users"] = {int(key): val for key, val in meta["users"].items()}
     meta["queries"] = {int(key): val for key, val in meta["queries"].items()}
+    meta["remapped_queries"] = {int(key): val for key, val in meta["remapped_queries"].items()}
     meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
     meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
     meta["groups"] = {int(key): val for key, val in meta["groups"].items()}
@@ -1087,7 +1132,7 @@ def main(command):
         if command == "init":
             pass
         else:
-            print("Script could not proceed because of a problem reading meta.json")
+            print(f"Script could not proceed because of a problem reading meta.json: {e}")
             print("Please run redash-migrate init before proceeding")
             return
 
@@ -1104,6 +1149,7 @@ def main(command):
         "groups": import_groups,
         "destinations": import_destinations,
         "queries": import_queries,
+        "remap_queries": remap_queries,
         "visualizations": import_visualizations,
         "dashboards": import_dashboards,
         "alerts": import_alerts,
