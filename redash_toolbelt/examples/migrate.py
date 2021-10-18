@@ -414,10 +414,14 @@ def remap_queries(orig_client, dest_client):
                     migrated_query_id = str(meta["queries"][int(original_query_id)])
                 except Exception as e:
                     replaced_query = None
-                    failed_reason = "FAILED to remap query {}, could not get query id on the destination instance for original query id {}".format(query["id"], original_query_id)
+                    failed_reason = "FAILED to remap query {}, could not get query id on the destination instance for original query id {}".format(
+                        query["id"], original_query_id
+                    )
                     break
 
-                replaced_query = replaced_query.replace(prefix + original_query_id, prefix + migrated_query_id)
+                replaced_query = replaced_query.replace(
+                    prefix + original_query_id, prefix + migrated_query_id
+                )
 
         if failed_reason:
             print(failed_reason)
@@ -427,10 +431,13 @@ def remap_queries(orig_client, dest_client):
                 print("Remapped migrated query {}".format(query["id"]))
                 meta["remapped_queries"][query["id"]] = True
             except Exception as e:
-                print("Failure in remapping migrated query {}: {}".format(query["id"], e))
+                print(
+                    "Failure in remapping migrated query {}: {}".format(query["id"], e)
+                )
                 return
         else:
             print("Query {} does not need to be remapped".format(query["id"]))
+
 
 def import_queries(orig_client, dest_client):
 
@@ -488,7 +495,11 @@ def import_queries(orig_client, dest_client):
                     "api_key"
                 ]
             except UserNotFoundException as e:
-                print("Query {} - FAIL (UserNotFoundException) - {}".format(query["id"], e))
+                print(
+                    "Query {} - FAIL (UserNotFoundException) - {}".format(
+                        query["id"], e
+                    )
+                )
                 return
 
             print("Query {} - OK  - importing".format(origin_id))
@@ -1072,7 +1083,9 @@ def make_global_meta():
     meta = get_meta()
     meta["users"] = {int(key): val for key, val in meta["users"].items()}
     meta["queries"] = {int(key): val for key, val in meta["queries"].items()}
-    meta["remapped_queries"] = {int(key): val for key, val in meta["remapped_queries"].items()}
+    meta["remapped_queries"] = {
+        int(key): val for key, val in meta["remapped_queries"].items()
+    }
     meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
     meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
     meta["groups"] = {int(key): val for key, val in meta["groups"].items()}
@@ -1161,7 +1174,9 @@ def main(command):
         if command == "init":
             pass
         else:
-            print(f"Script could not proceed because of a problem reading meta.json: {e}")
+            print(
+                f"Script could not proceed because of a problem reading meta.json: {e}"
+            )
             print("Please run redash-migrate init before proceeding")
             return
 
