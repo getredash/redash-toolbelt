@@ -176,24 +176,52 @@ def import_destinations(orig_client, dest_client):
 
 def import_groups(orig_client, dest_client):
 
+    BUILTINS = {
+        'admin': 1,
+        'default': 2
+    }
+
     o_groups = orig_client._get("api/groups").json()
 
     for group in o_groups:
 
         id = group["id"]
         name = group["name"]
+        type_ = group["type"]
+
+        print(f"Starting migration of {name} group...")
 
         if id in meta["groups"]:
             print(f"Origin group {id} -- SKIP -- Already exists in destination")
             continue
 
-        # Post to GroupListResource to create the group in the destination
-        resp = dest_client._post("api/groups", json={"name": name}).json()
-        dest_id = resp["id"]
+        # Check if current origin group belongs to the default ones
+        # If so, skip posting to GroupListResource and restore it to a blank slate
+        elif type_ == "builtin":
+            dest_id = BUILTINS.get(name)
+            print(
+                f"Origin group {id} -- MERGING -- Belongs to builtins group"
+            )
 
-        print(
-            f"Origin group {id} -- OK -- Group created at destination with id {dest_id}"
-        )
+            initial_sources = dest_client._get(f"api/groups/{dest_id}/data_sources").json()
+            if initial_sources is not None:
+                print(
+                    f"Preparing builtin group {dest_id} to restore original data source associations..."
+                )
+                for source in initial_sources:
+                    s_id = source["id"]
+                    resp = dest_client._delete(
+                        f"api/groups/{dest_id}/data_sources/{s_id}"
+                    ).json()
+
+        else:
+            # Post to GroupListResource to create the group in the destination
+            resp = dest_client._post("api/groups", json={"name": name}).json()
+            dest_id = resp["id"]
+
+            print(
+                f"Origin group {id} -- OK -- Group created at destination with id {dest_id}"
+            )
 
         meta["groups"][id] = dest_id
 
@@ -201,27 +229,28 @@ def import_groups(orig_client, dest_client):
         members = orig_client._get(f"api/groups/{id}/members").json()
         if not members:
             print(f"Origin group {id} -- WARNING -- No members in origin group")
-            continue
+        else:
+            # Allows for an origin group to have no members but still get the
+            # proper data sources associated with it correctly migrated
+            for m in members:
+                dest_member_id = meta["users"].get(m["id"]).get("id")
+                if dest_member_id is None:
+                    print(
+                        f"Origin group {id} -- ERROR -- Origin group member {m['id']} not present in destination"
+                    )
+                    continue
 
-        for m in members:
-            dest_member_id = meta["users"].get(m["id"]).get("id")
-            if dest_member_id is None:
+                # Post to GroupMemberListResource
+                resp = dest_client._post(
+                    f"api/groups/{dest_id}/members", json={"user_id": dest_member_id}
+                ).json()
                 print(
-                    f"Origin group {id} -- ERROR -- Origin group member {m['id']} not present in destination"
+                    f"Origin group {id} -- OK -- Dest user {dest_member_id} added to {dest_id}"
                 )
-                continue
 
-            # Post to GroupMemberListResource
-            resp = dest_client._post(
-                f"api/groups/{dest_id}/members", json={"user_id": dest_member_id}
-            ).json()
             print(
-                f"Origin group {id} -- OK -- Dest user {dest_member_id} added to {dest_id}"
+                f"Origin group {id} -- OK -- Finished copying users into destination group {dest_id}"
             )
-
-        print(
-            f"Origin group {id} -- OK -- Finished copying users into destination group {dest_id}"
-        )
 
         # Get from GroupDataSourceListResource
         data_sources = orig_client._get(f"api/groups/{id}/data_sources").json()

@@ -205,6 +205,9 @@ class Redash(object):
     def _post(self, path, **kwargs):
         return self._request("POST", path, **kwargs)
 
+    def _delete(self, path, **kwargs):
+        return self._request("DELETE", path, **kwargs)
+
     def _request(self, method, path, **kwargs):
         url = "{}/{}".format(self.redash_url, path)
         response = self.session.request(method, url, **kwargs)
