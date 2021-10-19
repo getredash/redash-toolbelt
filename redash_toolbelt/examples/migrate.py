@@ -1,6 +1,6 @@
 """
 Author: Jesse Whitehouse
-Last updated: 10 October 2021
+Last updated: 13 October 2021
 Notes:
   Copied from https://gist.github.com/arikfr/2c7d09f6837b256c58a3d3ef6a97f61a
 """
@@ -921,7 +921,7 @@ def init():
         "Please enter an admin API key for the origin instance: "
     )
     origin_admin_user_id = input(
-        "Please enter the user id for this admin on the origin instance: "
+        "Please enter the integer user id for this admin on the origin instance: "
     )
 
     meta["settings"]["origin_url"] = origin_url
@@ -936,7 +936,7 @@ def init():
         "Please enter an admin API key for the destination instance: "
     )
     destination_admin_user_id = input(
-        "Please enter the user id for this admin on the destination instance: "
+        "Please enter the integer user id for this admin on the destination instance: "
     )
     destination_admin_email_address = input(
         "Please enter the email address for the destination admin user: "
