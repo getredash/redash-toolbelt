@@ -132,7 +132,7 @@ init                  Create a meta.json template file in your working directory
                       prompted to enter authentication information for your origin and desti-
                       nation instances.
 data-sources          Create stubs of your origin data sources in your destination instance
-check_data_sources    Compare the data sources in your origin and destination instances
+check-data-sources    Compare the data sources in your origin and destination instances
 users                 Duplicate user names, emails, and enabled/disabled status from the
                       origin instance into the destination instance.
 groups                Duplicate group names, member lists, and data source permissions from
@@ -162,7 +162,7 @@ The order you run commands is important. For example, you must import users befo
 destinations before alerts, and queries before visualizations. For best results, use the order that
 commands are shown in the output of the `--help` option.
 
-With exception of `init` and `check_data_sources`, each command modifies the destination instance.
+With exception of `init` and `check-data-sources`, each command modifies the destination instance.
 _The origin instance is never modified_. The script only emits GET requests to the origin instance.
 It only emits POST requests to the destination instance.
 

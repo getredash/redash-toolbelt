@@ -1064,7 +1064,7 @@ def main(command):
       data-sources          Create stubs of your origin data sources in your destination instance
 
       \b
-      check_data_sources    Compare the data sources in your origin and destination instances
+      check-data-sources    Compare the data sources in your origin and destination instances
 
       \b
       users                 Duplicate user names, emails, and enabled/disabled status from the
@@ -1128,7 +1128,7 @@ def main(command):
 
     command_map = {
         "data-sources": import_data_sources,
-        "check_data_sources": check_data_sources,
+        "check-data-sources": check_data_sources,
         "users": import_users,
         "groups": import_groups,
         "destinations": import_destinations,
