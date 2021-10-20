@@ -7,6 +7,7 @@ redash-migrate - Move data from one instance of Redash to another
   - [SETTINGS](#settings)
   - [READING THE METAFILE](#reading-the-metafile)
   - [FIRST USER](#first-user)
+  - [DATA SOURCES](#data-sources)
 - [COMMANDS](#commands)
   - [RUNNING COMMANDS](#running-commands)
 - [FAQ](#faq)
@@ -110,6 +111,19 @@ origin instance with their id at the destination.
 
 If you don't do this, you will potentially create a duplicate user at the destination.
 
+### DATA SOURCES
+
+When you run the `data-sources` command, redash-migrate creates "stub" data sources at your
+destination instance. Stub data sources mirror the name, type, any other non-secret fields
+from your origin. But the secret fields _will be blank on the destination instance_. This
+includes passwords, key files, and auth tokens. In all likelihood, you will not be able to
+run queries on your destination instance until you fill in any missing secret fields with
+the UI.
+
+This step is necessary because redash-migrate uses the Redash REST API which never sends
+secret data source fields in plain text. It's a security measure to prevent exfiltration
+of your organisation's database credentials should a hostile party obtain an admin API key.
+
 ## COMMANDS
 You can run `redash-migrate --help` to see the available commands. 
 
@@ -117,7 +131,7 @@ You can run `redash-migrate --help` to see the available commands.
 init                  Create a meta.json template file in your working directory. You will be
                       prompted to enter authentication information for your origin and desti-
                       nation instances.
-data_sources          Create stubs of your origin data sources in your destination instance
+data-sources          Create stubs of your origin data sources in your destination instance
 check_data_sources    Compare the data sources in your origin and destination instances
 users                 Duplicate user names, emails, and enabled/disabled status from the
                       origin instance into the destination instance.
