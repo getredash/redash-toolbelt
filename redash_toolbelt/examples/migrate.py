@@ -389,54 +389,64 @@ def disable_users(orig_client, dest_client):
         print("No users were disabled")
 
 
-def remap_queries(orig_client, dest_client):
+def fix_qrds_refs(orig_client, dest_client):
     import re
 
-    queries = dest_client.paginate(dest_client.queries)
-    for query in queries:
-        if query["id"] in meta["remapped_queries"]:
-            print("Query {} already remapped".format(query["id"]))
-            continue
+    # Fetch QRDS data sources
 
-        replaced_query = None
-        failed_reason = None
+    data_sources = dest_client.get_data_sources()
+    qrds_sources = [i["id"] for i in data_sources if i["type"] == "results"]
+    queries = dest_client.paginate(dest_client.queries)
+    qrds_queries = [i for i in queries if i["data_source_id"] in qrds_sources and i["id"] not in meta["fix_qrds_queries"]]
+
+    if not qrds_queries:
+        print("WARNING - Could not find any queries against QRDS data sources")
+        return
+
+    for query in qrds_queries:
+
+        query_id = query["id"]
+        query_text = None
+        fail_flag = False
         for prefix in ["query_", "cached_query_"]:
             pattern = re.compile(f"{prefix}(\d*)")
-            original_query_ids = pattern.findall(query["query"])
-            if len(original_query_ids) == 0:
+            origin_query_ids = pattern.findall(query["query"])
+            
+            if not origin_query_ids:
+                print("Destination Query {} - WARN - Query does not appear to reference any other queries".format(query_id))
                 continue
 
-            if replaced_query is None:
-                replaced_query = query["query"]
+            if query_text is None:
+                query_text = query["query"]
 
-            for original_query_id in original_query_ids:
+            for origin_id in origin_query_ids:
+
                 try:
-                    migrated_query_id = str(meta["queries"][int(original_query_id)])
-                except Exception as e:
-                    replaced_query = None
-                    failed_reason = "FAILED to remap query {}, could not get query id on the destination instance for original query id {}".format(
-                        query["id"], original_query_id
-                    )
+                    _origin_id = int(origin_id)
+                except:
+                    print('debugging')
+
+                dest_id = meta["queries"].get(_origin_id)
+
+                if dest_id is None:
+                    print("Destination Query {} - WARN - References origin query {} which was not copied to the destination.".format(query_id, origin_id))
+                    fail_flag = True
                     break
 
-                replaced_query = replaced_query.replace(
-                    prefix + original_query_id, prefix + migrated_query_id
-                )
+                query_text = query_text.replace(f"{prefix}{origin_id}", f"{prefix}{dest_id}")
 
-        if failed_reason:
-            print(failed_reason)
-        elif replaced_query:
-            try:
-                dest_client.update_query(query["id"], {"query": replaced_query})
-                print("Remapped migrated query {}".format(query["id"]))
-                meta["remapped_queries"][query["id"]] = True
-            except Exception as e:
-                print(
-                    "Failure in remapping migrated query {}: {}".format(query["id"], e)
-                )
-                return
-        else:
-            print("Query {} does not need to be remapped".format(query["id"]))
+        if fail_flag:
+            continue
+        
+        try:
+            dest_client.update_query(query_id, {"query": query_text})
+            meta["fix_qrds_queries"][query["id"]] = True
+
+            print("Destination Query {} - OK - Fixed all query references".format(query_id))
+        except Exception as e:
+            print("Destination Query {} - FAIL - Could not update query text: {}".format(query_id,e))
+
+
 
 
 def import_queries(orig_client, dest_client):
@@ -496,7 +506,7 @@ def import_queries(orig_client, dest_client):
                 ]
             except UserNotFoundException as e:
                 print(
-                    "Query {} - FAIL (UserNotFoundException) - {}".format(
+                    "Query {} - FAIL - User not found: {}".format(
                         query["id"], e
                     )
                 )
@@ -509,7 +519,7 @@ def import_queries(orig_client, dest_client):
             try:
                 response = user_client.create_query(data)
             except Exception as e:
-                print("Query {} - FAIL (create failed) - {}".format(origin_id, e))
+                print("Query {} - FAIL - Query creation at destination failed: {}".format(origin_id, e))
                 return
 
             destination_id = response.json()["id"]
@@ -916,7 +926,7 @@ def get_from_dictlist_by_key(l, key, value):
 base_meta = {
     "users": {},
     "queries": {},
-    "remapped_queries": {},
+    "fix_qrds_queries": {},
     "visualizations": {},
     "dashboards": {},
     "alerts": {},
@@ -1070,6 +1080,9 @@ def save_meta_wrapper(func):
 #    | |___| |___ | |
 #     \____|_____|___|
 
+def cast_keys_to_int(d):
+    return {int(key): val for key, val in d.items() }
+
 
 def make_global_meta():
     global meta
@@ -1081,15 +1094,13 @@ def make_global_meta():
     global DATA_SOURCES
 
     meta = get_meta()
-    meta["users"] = {int(key): val for key, val in meta["users"].items()}
-    meta["queries"] = {int(key): val for key, val in meta["queries"].items()}
-    meta["remapped_queries"] = {
-        int(key): val for key, val in meta["remapped_queries"].items()
-    }
-    meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
-    meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
-    meta["groups"] = {int(key): val for key, val in meta["groups"].items()}
-    meta["destinations"] = {int(key): val for key, val in meta["destinations"].items()}
+    meta["users"] = cast_keys_to_int(meta["users"])
+    meta["queries"] = cast_keys_to_int(meta["queries"])
+    meta["fix_qrds_queries"] = cast_keys_to_int(meta["fix_qrds_queries"])
+    meta["alerts"] = cast_keys_to_int(meta["alerts"] )
+    meta["data_sources"] = cast_keys_to_int(meta["data_sources"])
+    meta["groups"] = cast_keys_to_int(meta["groups"])
+    meta["destinations"] = cast_keys_to_int(meta["destinations"])
 
     # The Redash instance you're copying from:
     ORIGIN = meta["settings"]["origin_url"]
@@ -1193,7 +1204,7 @@ def main(command):
         "groups": import_groups,
         "destinations": import_destinations,
         "queries": import_queries,
-        "remap_queries": remap_queries,
+        "fix-qrds-refs": fix_qrds_refs,
         "visualizations": import_visualizations,
         "dashboards": import_dashboards,
         "alerts": import_alerts,
