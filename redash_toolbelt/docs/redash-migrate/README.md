@@ -152,7 +152,7 @@ alerts                Duplicate alert definitions from the origin instance to th
                       the `queries` command. Run the `destinations` command first.
 favorites             Duplicate favorite flags on queries and dashboards from the origin
                       instance to the destination instance.
-disable_users         Disable users in the destination instance that are disabled in the
+disable-users         Disable users in the destination instance that are disabled in the
                       origin instance.
 ```
 

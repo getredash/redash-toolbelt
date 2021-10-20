@@ -1102,7 +1102,7 @@ def main(command):
                             instance to the destination instance.
 
       \b
-      disable_users         Disable users in the destination instance that are disabled in the
+      disable-users         Disable users in the destination instance that are disabled in the
                             origin instance.
 
       \b
@@ -1137,7 +1137,7 @@ def main(command):
         "dashboards": import_dashboards,
         "alerts": import_alerts,
         "favorites": import_favorites,
-        "disable_users": disable_users,
+        "disable-users": disable_users,
     }
 
     _command = command_map.get(command)
