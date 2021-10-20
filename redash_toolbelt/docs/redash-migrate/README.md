@@ -7,6 +7,7 @@ redash-migrate - Move data from one instance of Redash to another
   - [SETTINGS](#settings)
   - [READING THE METAFILE](#reading-the-metafile)
   - [FIRST USER](#first-user)
+  - [DATA SOURCES](#data-sources)
 - [COMMANDS](#commands)
   - [RUNNING COMMANDS](#running-commands)
 - [FAQ](#faq)
@@ -110,6 +111,19 @@ origin instance with their id at the destination.
 
 If you don't do this, you will potentially create a duplicate user at the destination.
 
+### DATA SOURCES
+
+When you run the `data-sources` command, redash-migrate creates "stub" data sources at your
+destination instance. Stub data sources mirror the name, type, any other non-secret fields
+from your origin. But the secret fields _will be blank on the destination instance_. This
+includes passwords, key files, and auth tokens. In all likelihood, you will not be able to
+run queries on your destination instance until you fill in any missing secret fields with
+the UI.
+
+This step is necessary because redash-migrate uses the Redash REST API which never sends
+secret data source fields in plain text. It's a security measure to prevent exfiltration
+of your organisation's database credentials should a hostile party obtain an admin API key.
+
 ## COMMANDS
 You can run `redash-migrate --help` to see the available commands. 
 
@@ -117,8 +131,8 @@ You can run `redash-migrate --help` to see the available commands.
 init                  Create a meta.json template file in your working directory. You will be
                       prompted to enter authentication information for your origin and desti-
                       nation instances.
-data_sources          Create stubs of your origin data sources in your destination instance
-check_data_sources    Compare the data sources in your origin and destination instances
+data-sources          Create stubs of your origin data sources in your destination instance
+check-data-sources    Compare the data sources in your origin and destination instances
 users                 Duplicate user names, emails, and enabled/disabled status from the
                       origin instance into the destination instance.
 groups                Duplicate group names, member lists, and data source permissions from
@@ -138,7 +152,7 @@ alerts                Duplicate alert definitions from the origin instance to th
                       the `queries` command. Run the `destinations` command first.
 favorites             Duplicate favorite flags on queries and dashboards from the origin
                       instance to the destination instance.
-disable_users         Disable users in the destination instance that are disabled in the
+disable-users         Disable users in the destination instance that are disabled in the
                       origin instance.
 ```
 
@@ -148,7 +162,7 @@ The order you run commands is important. For example, you must import users befo
 destinations before alerts, and queries before visualizations. For best results, use the order that
 commands are shown in the output of the `--help` option.
 
-With exception of `init` and `check_data_sources`, each command modifies the destination instance.
+With exception of `init` and `check-data-sources`, each command modifies the destination instance.
 _The origin instance is never modified_. The script only emits GET requests to the origin instance.
 It only emits POST requests to the destination instance.
 

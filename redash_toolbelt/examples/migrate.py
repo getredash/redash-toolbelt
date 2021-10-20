@@ -1,6 +1,6 @@
 """
 Author: Jesse Whitehouse
-Last updated: 13 October 2021
+Last updated: 20 October 2021
 Notes:
   Copied from https://gist.github.com/arikfr/2c7d09f6837b256c58a3d3ef6a97f61a
 """
@@ -1061,10 +1061,10 @@ def main(command):
                             nation instances.
 
       \b
-      data_sources          Create stubs of your origin data sources in your destination instance
+      data-sources          Create stubs of your origin data sources in your destination instance
 
       \b
-      check_data_sources    Compare the data sources in your origin and destination instances
+      check-data-sources    Compare the data sources in your origin and destination instances
 
       \b
       users                 Duplicate user names, emails, and enabled/disabled status from the
@@ -1102,7 +1102,7 @@ def main(command):
                             instance to the destination instance.
 
       \b
-      disable_users         Disable users in the destination instance that are disabled in the
+      disable-users         Disable users in the destination instance that are disabled in the
                             origin instance.
 
       \b
@@ -1127,8 +1127,8 @@ def main(command):
     to_client = Redash(DESTINATION, DESTINATION_API_KEY)
 
     command_map = {
-        "data_sources": import_data_sources,
-        "check_data_sources": check_data_sources,
+        "data-sources": import_data_sources,
+        "check-data-sources": check_data_sources,
         "users": import_users,
         "groups": import_groups,
         "destinations": import_destinations,
@@ -1137,7 +1137,7 @@ def main(command):
         "dashboards": import_dashboards,
         "alerts": import_alerts,
         "favorites": import_favorites,
-        "disable_users": disable_users,
+        "disable-users": disable_users,
     }
 
     _command = command_map.get(command)
