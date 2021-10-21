@@ -392,6 +392,8 @@ def disable_users(orig_client, dest_client):
 def fix_qrds_refs(orig_client, dest_client):
     import re
 
+    PREFIXES = ["query_", "cached_query_"]
+    MAX_NOT_FOUND = len(PREFIXES)
     # Fetch QRDS data sources
 
     data_sources = dest_client.get_data_sources()
@@ -404,16 +406,20 @@ def fix_qrds_refs(orig_client, dest_client):
         return
 
     for query in qrds_queries:
-
         query_id = query["id"]
         query_text = None
         fail_flag = False
+        not_found_count = 0
+
         for prefix in ["query_", "cached_query_"]:
             pattern = re.compile(f"{prefix}(\d*)")
             origin_query_ids = pattern.findall(query["query"])
             
             if not origin_query_ids:
-                print("Destination Query {} - WARN - Query does not appear to reference any other queries".format(query_id))
+                not_found_count += 1
+                if not_found_count == MAX_NOT_FOUND:
+                    print("Destination Query {} - INFO - Query does not reference any other queries. Skipping...".format(query_id, prefix))
+                    fail_flag = True
                 continue
 
             if query_text is None:
