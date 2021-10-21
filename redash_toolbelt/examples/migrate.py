@@ -411,7 +411,7 @@ def fix_qrds_refs(orig_client, dest_client):
         fail_flag = False
         not_found_count = 0
 
-        for prefix in ["query_", "cached_query_"]:
+        for prefix in PREFIXES:
             pattern = re.compile(f"{prefix}(\d*)")
             origin_query_ids = pattern.findall(query["query"])
 
