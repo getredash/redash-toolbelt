@@ -398,8 +398,7 @@ def fix_qrds_refs(orig_client, dest_client):
     qrds_queries = [
         i
         for i in queries
-        if i["data_source_id"] in qrds_sources
-        and i["id"] not in meta["fix_qrds_refs"]
+        if i["data_source_id"] in qrds_sources and i["id"] not in meta["fix_qrds_refs"]
     ]
 
     if not qrds_queries:
