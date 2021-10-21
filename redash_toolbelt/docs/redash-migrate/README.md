@@ -154,6 +154,9 @@ favorites             Duplicate favorite flags on queries and dashboards from th
                       instance to the destination instance.
 disable-users         Disable users in the destination instance that are disabled in the
                       origin instance.
+fix-qrds-refs         Replace references to origin query id's in query results data source
+                      (QRDS) queries with their new id at the destination. Does nothing if
+                      the destination has no QRDS sources.
 ```
 
 ### RUNNING COMMANDS

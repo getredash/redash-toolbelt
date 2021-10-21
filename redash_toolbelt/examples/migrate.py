@@ -1199,6 +1199,11 @@ def main(command):
                             origin instance.
 
       \b
+      fix-qrds-refs         Replace references to origin query id's in query results data source
+                            (QRDS) queries with their new id at the destination. Does nothing if
+                            the destination has no QRDS sources.
+
+      \b
       Commands should be called in the order specified here. Check meta.json between steps to
       confirm expected behavior.
     """
