@@ -1,12 +1,12 @@
 """
 Author: Jesse Whitehouse
-Last updated: 20 October 2021
+Last updated: 21 October 2021
 Notes:
   Copied from https://gist.github.com/arikfr/2c7d09f6837b256c58a3d3ef6a97f61a
 """
 
 
-import sys, os, json, logging, textwrap
+import sys, os, json, logging, textwrap, re
 import click
 from redash_toolbelt import Redash
 
@@ -176,10 +176,7 @@ def import_destinations(orig_client, dest_client):
 
 def import_groups(orig_client, dest_client):
 
-    BUILTINS = {
-        'admin': 1,
-        'default': 2
-    }
+    BUILTINS = {"admin": 1, "default": 2}
 
     o_groups = orig_client._get("api/groups").json()
 
@@ -199,11 +196,11 @@ def import_groups(orig_client, dest_client):
         # If so, skip posting to GroupListResource and restore it to a blank slate
         elif type_ == "builtin":
             dest_id = BUILTINS.get(name)
-            print(
-                f"Origin group {id} -- MERGING -- Belongs to builtins group"
-            )
+            print(f"Origin group {id} -- MERGING -- Belongs to builtins group")
 
-            initial_sources = dest_client._get(f"api/groups/{dest_id}/data_sources").json()
+            initial_sources = dest_client._get(
+                f"api/groups/{dest_id}/data_sources"
+            ).json()
             if initial_sources is not None:
                 print(
                     f"Preparing builtin group {dest_id} to restore original data source associations..."
@@ -389,6 +386,88 @@ def disable_users(orig_client, dest_client):
         print("No users were disabled")
 
 
+def fix_qrds_refs(orig_client, dest_client):
+
+    PREFIXES = ["query_", "cached_query_"]
+    MAX_NOT_FOUND = len(PREFIXES)
+
+    # Fetch QRDS data sources
+    data_sources = dest_client.get_data_sources()
+    qrds_sources = [i["id"] for i in data_sources if i["type"] == "results"]
+    queries = dest_client.paginate(dest_client.queries)
+    qrds_queries = [
+        i
+        for i in queries
+        if i["data_source_id"] in qrds_sources and i["id"] not in meta["fix_qrds_refs"]
+    ]
+
+    if not qrds_queries:
+        print("WARNING - Could not find any queries against QRDS data sources")
+        return
+
+    for query in qrds_queries:
+        query_id = query["id"]
+        query_text = None
+        fail_flag = False
+        not_found_count = 0
+
+        for prefix in PREFIXES:
+            pattern = re.compile(f"{prefix}(\d*)")
+            origin_query_ids = pattern.findall(query["query"])
+
+            if not origin_query_ids:
+                not_found_count += 1
+                if not_found_count == MAX_NOT_FOUND:
+                    print(
+                        "Destination Query {} - INFO - Query does not reference any other queries. Skipping...".format(
+                            query_id, prefix
+                        )
+                    )
+                    fail_flag = True
+                continue
+
+            if query_text is None:
+                query_text = query["query"]
+
+            for origin_id in origin_query_ids:
+
+                _origin_id = int(origin_id)
+
+                dest_id = meta["queries"].get(_origin_id)
+
+                if dest_id is None:
+                    print(
+                        "Destination Query {} - WARN - References origin query {} which was not copied to the destination.".format(
+                            query_id, origin_id
+                        )
+                    )
+                    fail_flag = True
+                    break
+
+                query_text = query_text.replace(
+                    f"{prefix}{origin_id}", f"{prefix}{dest_id}"
+                )
+
+        if fail_flag:
+            continue
+
+        try:
+            dest_client.update_query(query_id, {"query": query_text})
+            meta["fix_qrds_refs"][query["id"]] = True
+
+            print(
+                "Destination Query {} - OK - Fixed all query references".format(
+                    query_id
+                )
+            )
+        except Exception as e:
+            print(
+                "Destination Query {} - FAIL - Could not update query text: {}".format(
+                    query_id, e
+                )
+            )
+
+
 def import_queries(orig_client, dest_client):
 
     queries_that_depend_on_queries = []
@@ -445,7 +524,7 @@ def import_queries(orig_client, dest_client):
                     "api_key"
                 ]
             except UserNotFoundException as e:
-                print("Query {} - FAIL - {}".format(query["id"], e))
+                print("Query {} - FAIL - User not found: {}".format(query["id"], e))
                 return
 
             print("Query {} - OK  - importing".format(origin_id))
@@ -455,7 +534,11 @@ def import_queries(orig_client, dest_client):
             try:
                 response = user_client.create_query(data)
             except Exception as e:
-                print("Query {} - FAIL - {}".format(origin_id, e))
+                print(
+                    "Query {} - FAIL - Query creation at destination failed: {}".format(
+                        origin_id, e
+                    )
+                )
                 return
 
             destination_id = response.json()["id"]
@@ -862,6 +945,7 @@ def get_from_dictlist_by_key(l, key, value):
 base_meta = {
     "users": {},
     "queries": {},
+    "fix_qrds_refs": {},
     "visualizations": {},
     "dashboards": {},
     "alerts": {},
@@ -1016,6 +1100,10 @@ def save_meta_wrapper(func):
 #     \____|_____|___|
 
 
+def cast_keys_to_int(d):
+    return {int(key): val for key, val in d.items()}
+
+
 def make_global_meta():
     global meta
     global ORIGIN
@@ -1026,12 +1114,13 @@ def make_global_meta():
     global DATA_SOURCES
 
     meta = get_meta()
-    meta["users"] = {int(key): val for key, val in meta["users"].items()}
-    meta["queries"] = {int(key): val for key, val in meta["queries"].items()}
-    meta["alerts"] = {int(key): val for key, val in meta["alerts"].items()}
-    meta["data_sources"] = {int(key): val for key, val in meta["data_sources"].items()}
-    meta["groups"] = {int(key): val for key, val in meta["groups"].items()}
-    meta["destinations"] = {int(key): val for key, val in meta["destinations"].items()}
+    meta["users"] = cast_keys_to_int(meta["users"])
+    meta["queries"] = cast_keys_to_int(meta["queries"])
+    meta["fix_qrds_refs"] = cast_keys_to_int(meta["fix_qrds_refs"])
+    meta["alerts"] = cast_keys_to_int(meta["alerts"])
+    meta["data_sources"] = cast_keys_to_int(meta["data_sources"])
+    meta["groups"] = cast_keys_to_int(meta["groups"])
+    meta["destinations"] = cast_keys_to_int(meta["destinations"])
 
     # The Redash instance you're copying from:
     ORIGIN = meta["settings"]["origin_url"]
@@ -1106,6 +1195,11 @@ def main(command):
                             origin instance.
 
       \b
+      fix-qrds-refs         Replace references to origin query id's in query results data source
+                            (QRDS) queries with their new id at the destination. Does nothing if
+                            the destination has no QRDS sources.
+
+      \b
       Commands should be called in the order specified here. Check meta.json between steps to
       confirm expected behavior.
     """
@@ -1116,7 +1210,9 @@ def main(command):
         if command == "init":
             pass
         else:
-            print("Script could not proceed because of a problem reading meta.json")
+            print(
+                f"Script could not proceed because of a problem reading meta.json: {e}"
+            )
             print("Please run redash-migrate init before proceeding")
             return
 
@@ -1133,6 +1229,7 @@ def main(command):
         "groups": import_groups,
         "destinations": import_destinations,
         "queries": import_queries,
+        "fix-qrds-refs": fix_qrds_refs,
         "visualizations": import_visualizations,
         "dashboards": import_dashboards,
         "alerts": import_alerts,
