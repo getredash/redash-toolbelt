@@ -431,10 +431,7 @@ def fix_qrds_refs(orig_client, dest_client):
 
             for origin_id in origin_query_ids:
 
-                try:
-                    _origin_id = int(origin_id)
-                except:
-                    print("debugging")
+                _origin_id = int(origin_id)
 
                 dest_id = meta["queries"].get(_origin_id)
 
