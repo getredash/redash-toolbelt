@@ -213,8 +213,10 @@ def import_groups(orig_client, dest_client):
                     ).json()
 
             # Remove all member associations with `default` group to prevent duplicates
-            if name == 'default':
-                initial_members = dest_client._get(f"api/groups/{dest_id}/members").json()
+            if name == "default":
+                initial_members = dest_client._get(
+                    f"api/groups/{dest_id}/members"
+                ).json()
                 print(
                     f"Preparing builtin group {dest_id} to restore original members associations..."
                 )
@@ -256,7 +258,7 @@ def import_groups(orig_client, dest_client):
                     continue
 
                 # `Admin` user is already associated with builtin groups
-                if dest_member_id == dest_admin_user_id and type_ == 'builtin':
+                if dest_member_id == dest_admin_user_id and type_ == "builtin":
                     continue
 
                 # Post to GroupMemberListResource
@@ -960,10 +962,14 @@ def progress_bar(it, prefix="", size=60):
     count = len(it)
 
     def show(j):
-        fill = u'\u25AE'
+        fill = "\u25AE"
         cur_pct = int(j * 100 / count)
         x = int(size * j / count)
-        print(f"{prefix} - [{fill * x}{'.' * (size - x)}] {cur_pct}%\r", end="", flush=True)
+        print(
+            f"{prefix} - [{fill * x}{'.' * (size - x)}] {cur_pct}%\r",
+            end="",
+            flush=True,
+        )
 
     show(0)
     for i, item in enumerate(it):
@@ -1088,9 +1094,11 @@ def init():
     destination_admin_api_key = input(
         "Please enter an admin API key for the destination instance: "
     )
-    destination_admin_user_id = int(input(
-        "Please enter the integer user id for this admin on the destination instance: "
-    ))
+    destination_admin_user_id = int(
+        input(
+            "Please enter the integer user id for this admin on the destination instance: "
+        )
+    )
     destination_admin_email_address = input(
         "Please enter the email address for the destination admin user: "
     )
