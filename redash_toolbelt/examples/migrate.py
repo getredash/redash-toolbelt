@@ -961,8 +961,9 @@ def progress_bar(it, prefix="", size=60):
 
     def show(j):
         fill = u'\u25AE'
+        cur_pct = int(j * 100 / count)
         x = int(size * j / count)
-        print(f"{prefix} - [{fill * x}{'.' * (size - x)}] {j}/{count}\r", end="", flush=True)
+        print(f"{prefix} - [{fill * x}{'.' * (size - x)}] {cur_pct}%\r", end="", flush=True)
 
     show(0)
     for i, item in enumerate(it):
