@@ -178,6 +178,7 @@ def import_groups(orig_client, dest_client):
 
     BUILTINS = {"admin": 1, "default": 2}
 
+    dest_admin_user_id = meta["settings"]["destination_admin_user_id"]
     o_groups = orig_client._get("api/groups").json()
 
     for group in o_groups:
@@ -211,6 +212,23 @@ def import_groups(orig_client, dest_client):
                         f"api/groups/{dest_id}/data_sources/{s_id}"
                     ).json()
 
+            # Remove all member associations with `default` group to prevent duplicates
+            if name == 'default':
+                initial_members = dest_client._get(f"api/groups/{dest_id}/members").json()
+                print(
+                    f"Preparing builtin group {dest_id} to restore original members associations..."
+                )
+                if initial_members is not None:
+                    for member in progress_bar(initial_members, "Progress"):
+                        m_id = member["id"]
+                        # Skip removal of `Admin` user since it would cause
+                        # some requests to be forbidden
+                        if m_id == dest_admin_user_id:
+                            continue
+                        resp = dest_client._delete(
+                            f"api/groups/{dest_id}/members/{m_id}"
+                        ).json()
+
         else:
             # Post to GroupListResource to create the group in the destination
             resp = dest_client._post("api/groups", json={"name": name}).json()
@@ -235,6 +253,10 @@ def import_groups(orig_client, dest_client):
                     print(
                         f"Origin group {id} -- ERROR -- Origin group member {m['id']} not present in destination"
                     )
+                    continue
+
+                # `Admin` user is already associated with builtin groups
+                if dest_member_id == dest_admin_user_id and type_ == 'builtin':
                     continue
 
                 # Post to GroupMemberListResource
@@ -932,6 +954,23 @@ def get_from_dictlist_by_key(l, key, value):
     return [i for i in l if i.get(key) == value][0]
 
 
+def progress_bar(it, prefix="", size=60):
+    # Adapted from https://stackoverflow.com/a/34482761/12127578
+    # NOTE: doesn't work with generators unless wrapped in `list()`
+    count = len(it)
+
+    def show(j):
+        fill = u'\u25AE'
+        x = int(size * j / count)
+        print(f"{prefix} - [{fill * x}{'.' * (size - x)}] {j}/{count}\r", end="", flush=True)
+
+    show(0)
+    for i, item in enumerate(it):
+        yield item
+        show(i + 1)
+    print("\n", flush=True)
+
+
 #
 #          __  __      _
 #         |  \/  | ___| |_ __ _
@@ -1040,7 +1079,7 @@ def init():
     meta["settings"]["origin_url"] = origin_url
     meta["settings"]["origin_admin_api_key"] = origin_admin_api_key
 
-    print("\n\nNext, we'll enter the same information for the new")
+    print("\n\nNext, we'll enter the same information for the new instance")
 
     destination_url = input(
         "Please enter the destination URL. Example: http://localhost: "
@@ -1048,15 +1087,16 @@ def init():
     destination_admin_api_key = input(
         "Please enter an admin API key for the destination instance: "
     )
-    destination_admin_user_id = input(
+    destination_admin_user_id = int(input(
         "Please enter the integer user id for this admin on the destination instance: "
-    )
+    ))
     destination_admin_email_address = input(
         "Please enter the email address for the destination admin user: "
     )
 
     meta["settings"]["destination_url"] = destination_url
     meta["settings"]["destination_admin_api_key"] = destination_admin_api_key
+    meta["settings"]["destination_admin_user_id"] = destination_admin_user_id
 
     meta["users"][origin_admin_user_id] = {
         "id": destination_admin_user_id,
