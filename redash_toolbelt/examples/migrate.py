@@ -633,50 +633,69 @@ def import_visualizations(orig_client, dest_client):
 
     for query_id, new_query_id in meta["queries"].items():
 
-        if meta.get("flags", {}).get("viz_import_complete", {}).get(query_id):
-            print(
-                "Query {} - SKIP - All visualisations already imported".format(query_id)
-            )
+        if meta["flags"]["viz_import_complete"][query_id]:
+            print("Query {} - SKIP - All visualisations already imported".format(query_id))
+            # fmt: on
             continue
 
-        query = orig_client.get_query(query_id)
 
+        # Gather origin info
+        query = orig_client.get_query(query_id)
         orig_user_id = query["user"]["id"]
+
+        # Sort both lists to retain visualization order on the query screen
+        orig_table_visualizations = sorted([i for i in query["visualizations"] if i["type"] == "TABLE"], key=lambda x: x["id"])
+        orig_default_table = orig_table_visualizations[0]
+
+
+        # Build a user client so write operations preserve the original created by...
 
         try:
             dest_user_api_key = user_with_api_key(orig_user_id, dest_client)["api_key"]
+            user_client = Redash(DESTINATION, dest_user_api_key)
         except UserNotFoundException as e:
             print("Query {} - FAIL - Visualizations skipped: ".format(query_id, e))
             continue
 
-        print("   importing visualizations of: {}".format(query_id))
+        # Gather destination info
+        dest_query = user_client.get_query(new_query_id)
+        dest_query_id = dest_query["id"]
 
-        for v in query["visualizations"]:
+        # Sort this table like orig_table_visualizations.
+        # The first elements in these lists should mirror
+        # one another.
+        dest_table_visualizations = sorted([i for i in dest_query["visualizations"] if i["type"] == "TABLE"], key=lambda x: x["id"])
+        dest_default_table = dest_table_visualizations[0]
 
-            if str(v["id"]) in meta["visualizations"]:
+        default_table_viz_data =  {
+                "name": orig_default_table["name"],
+                "description": orig_default_table["description"],
+                "options": orig_default_table["options"],
+            }
+
+        print("Query {} - OK - Updating default table visualization settings")
+        user_client.update_visualization(dest_default_table["id"], default_table_viz_data)
+        meta["visualizations"][orig_default_table["id"]] = dest_default_table["id"]
+
+        for v in sorted(query["visualizations"], key=lambda x: x["id"]):
+
+            if v["id"] in meta["visualizations"] or v["id"] == orig_default_table["id"]:
                 print("Viz {} - SKIP - Already imported".format(v["id"]))
                 continue
 
-            if v["type"] == "TABLE":
-                response = dest_client.get_query(new_query_id)
+            print("Viz {} - OK - Importing...".format(v["id"]))
 
-                new_vis = response["visualizations"]
-                for new_v in new_vis:
-                    if new_v["type"] == "TABLE":
-                        meta["visualizations"][v["id"]] = new_v["id"]
-            else:
-                user_client = Redash(DESTINATION, dest_user_api_key)
+            data = {
+                "name": v["name"],
+                "description": v["description"],
+                "options": v["options"],
+                "type": v["type"],
+                "query_id": new_query_id,
+            }
 
-                data = {
-                    "name": v["name"],
-                    "description": v["description"],
-                    "options": v["options"],
-                    "type": v["type"],
-                    "query_id": new_query_id,
-                }
-                response = user_client._post("api/visualizations", json=data)
+            response = user_client._post("api/visualizations", json=data)
 
-                meta["visualizations"][v["id"]] = response.json()["id"]
+            meta["visualizations"][v["id"]] = response.json()["id"]
 
         meta["flags"]["viz_import_complete"][query_id] = True
 
@@ -1170,6 +1189,7 @@ def make_global_meta():
     meta["data_sources"] = cast_keys_to_int(meta["data_sources"])
     meta["groups"] = cast_keys_to_int(meta["groups"])
     meta["destinations"] = cast_keys_to_int(meta["destinations"])
+    meta["flags"]["viz_import_complete"] = cast_keys_to_int(meta["flags"]["viz_import_complete"])
 
     # The Redash instance you're copying from:
     ORIGIN = meta["settings"]["origin_url"]
