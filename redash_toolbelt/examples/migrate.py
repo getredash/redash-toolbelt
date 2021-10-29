@@ -633,7 +633,7 @@ def import_visualizations(orig_client, dest_client):
 
     for query_id, new_query_id in meta["queries"].items():
 
-        if meta["flags"]["viz_import_complete"][query_id]:
+        if meta["flags"]["viz_import_complete"].get(query_id):
             print(
                 "Query {} - SKIP - All visualisations already imported".format(query_id)
             )
@@ -679,7 +679,7 @@ def import_visualizations(orig_client, dest_client):
             "options": orig_default_table["options"],
         }
 
-        print("Query {} - OK - Updating default table visualization settings")
+        print("Query {} - OK - Updating default table visualization settings".format(dest_query_id))
         user_client.update_visualization(
             dest_default_table["id"], default_table_viz_data
         )
