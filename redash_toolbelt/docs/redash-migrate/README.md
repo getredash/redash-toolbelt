@@ -157,9 +157,12 @@ disable-users         Disable users in the destination instance that are disable
 fix-qrds-refs         Replace references to origin query id's in query results data source
                       (QRDS) queries with their new id at the destination. Does nothing if
                       the destination has no QRDS sources.
-```
+fix-csv-queries       Reformat queries against app.redash.io's csvurl data source so they are
+                      compatible with OSS Redash's csv data source. Do not use this command if
+                      you did not migrate from app.redash.io.
 
-### RUNNING COMMANDS
+```
+## RUNNING COMMANDS
 
 The order you run commands is important. For example, you must import users before groups,
 destinations before alerts, and queries before visualizations. For best results, use the order that

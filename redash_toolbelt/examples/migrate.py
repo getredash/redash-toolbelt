@@ -96,6 +96,8 @@ def import_data_sources(orig_client, dest_client):
         i["type"]: i for i in dest_client._get("api/data_sources/types").json()
     }
 
+    migratable_types = {"csvurl": {"name": "csv", "command-name": "fix-csv-queries"}}
+
     for ds in orig_data_sources:
 
         dsid = ds["id"]
@@ -108,7 +110,12 @@ def import_data_sources(orig_client, dest_client):
 
         ds_def = orig_client.get_data_source(dsid)
 
-        if ds_def["type"] not in allowed_types:
+        origin_type = ds_def["type"]
+
+        is_allowed_type = origin_type in allowed_types
+        is_migratable_type = origin_type in migratable_types
+
+        if not is_allowed_type and not is_migratable_type:
             print(
                 "WARNING: origin data source {} -- SKIP -- destination instance does not support this type: {}".format(
                     dsid, ds_def["type"]
@@ -116,9 +123,25 @@ def import_data_sources(orig_client, dest_client):
             )
             continue
 
+        if is_allowed_type:
+            target_type = origin_type
+        elif is_migratable_type:
+            target_type = migratable_types[origin_type]["name"]
+            print(
+                textwrap.dedent(
+                    """
+                INFO: Origin data source type {} is not supported, but queries can be mapped to type {}.
+                Run {} to update query text for this new query runner.""".format(
+                        origin_type,
+                        target_type,
+                        migratable_types[origin_type]["command-name"],
+                    )
+                )
+            )
+
         new_data_source_def = {
             "name": ds_def["name"],
-            "_type": ds_def["type"],
+            "_type": target_type,
             "options": ds_def["options"],
         }
 
@@ -911,6 +934,46 @@ def import_favorites(orig_client, dest_client):
         )
 
 
+def fix_csv_queries(orig_client, dest_client):
+
+    if "app.redash.io" not in DESTINATION:
+        confirm = input(
+            "It doesn't look like you moved from Hosted Redash. Are you certain you want to run this script? [Type 'yes' to proceed]"
+        )
+
+    if confirm != "yes":
+        print("Operation aborted")
+        return
+
+    # Fetch csvurl data sources
+    data_sources = dest_client.get_data_sources()
+    csv_sources = [i["id"] for i in data_sources if i["type"] == "csv"]
+    queries = dest_client.paginate(dest_client.queries)
+    csv_queries = [
+        i
+        for i in queries
+        if i["data_source_id"] in csv_sources and i["id"] not in meta["fix_csv_queries"]
+    ]
+
+    if not csv_queries:
+        print("WARNING - Could not find any queries against csv data sources")
+        return
+
+    for query in progress_bar(csv_queries, "Queries"):
+
+        query_id = query["id"]
+
+        # Queries against the app.redash.io csvurl queries should only have a single line
+        old_text = query["query"].split("\n")[0]
+        new_text = f'url: "{old_text}"'
+
+        user_api_key = get_api_key(dest_client, query["user"]["id"])
+        user_client = Redash(DESTINATION, user_api_key)
+        user_client.update_query(query_id, {"query": new_text})
+
+        meta["fix_csv_queries"][query_id] = True
+
+
 #     _   _ _   _ _ _ _   _
 #    | | | | |_(_) (_) |_(_) ___  ___
 #    | | | | __| | | | __| |/ _ \/ __|
@@ -1023,6 +1086,7 @@ base_meta = {
     "users": {},
     "queries": {},
     "fix_qrds_refs": {},
+    "fix_csv_queries": {},
     "visualizations": {},
     "dashboards": {},
     "alerts": {},
@@ -1197,6 +1261,7 @@ def make_global_meta():
     meta["users"] = cast_keys_to_int(meta["users"])
     meta["queries"] = cast_keys_to_int(meta["queries"])
     meta["fix_qrds_refs"] = cast_keys_to_int(meta["fix_qrds_refs"])
+    meta["fix_csv_queries"] = cast_keys_to_int(meta["fix_csv_queries"])
     meta["alerts"] = cast_keys_to_int(meta["alerts"])
     meta["data_sources"] = cast_keys_to_int(meta["data_sources"])
     meta["groups"] = cast_keys_to_int(meta["groups"])
@@ -1283,6 +1348,11 @@ def main(command):
                             the destination has no QRDS sources.
 
       \b
+      fix-csv-queries       Reformat queries against app.redash.io's csvurl data source so they are
+                            compatible with OSS Redash's csv data source. Do not use this command if
+                            you did not migrate from app.redash.io.
+
+      \b
       Commands should be called in the order specified here. Check meta.json between steps to
       confirm expected behavior.
     """
@@ -1313,6 +1383,7 @@ def main(command):
         "destinations": import_destinations,
         "queries": import_queries,
         "fix-qrds-refs": fix_qrds_refs,
+        "fix-csv-queries": fix_csv_queries,
         "visualizations": import_visualizations,
         "dashboards": import_dashboards,
         "alerts": import_alerts,
