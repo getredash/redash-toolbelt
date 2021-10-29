@@ -114,7 +114,7 @@ def import_data_sources(orig_client, dest_client):
 
         is_allowed_type = origin_type in allowed_types
         is_migratable_type = origin_type in migratable_types
-        
+
         if not is_allowed_type and not is_migratable_type:
             print(
                 "WARNING: origin data source {} -- SKIP -- destination instance does not support this type: {}".format(
@@ -122,16 +122,21 @@ def import_data_sources(orig_client, dest_client):
                 )
             )
             continue
-        
 
         if is_allowed_type:
             target_type = origin_type
         elif is_migratable_type:
             target_type = migratable_types[origin_type]["name"]
-            print(textwrap.dedent(
-                """
+            print(
+                textwrap.dedent(
+                    """
                 INFO: Origin data source type {} is not supported, but queries can be mapped to type {}.
-                Run {} to update query text for this new query runner.""".format(origin_type, target_type, migratable_types[origin_type]["command-name"]))
+                Run {} to update query text for this new query runner.""".format(
+                        origin_type,
+                        target_type,
+                        migratable_types[origin_type]["command-name"],
+                    )
+                )
             )
 
         new_data_source_def = {
@@ -901,12 +906,13 @@ def import_favorites(orig_client, dest_client):
 def fix_csv_queries(orig_client, dest_client):
 
     if "app.redash.io" not in DESTINATION:
-        confirm = input("It doesn't look like you moved from Hosted Redash. Are you certain you want to run this script? [Type 'yes' to proceed]")
+        confirm = input(
+            "It doesn't look like you moved from Hosted Redash. Are you certain you want to run this script? [Type 'yes' to proceed]"
+        )
 
-    if confirm != 'yes':
+    if confirm != "yes":
         print("Operation aborted")
         return
-
 
     # Fetch csvurl data sources
     data_sources = dest_client.get_data_sources()
