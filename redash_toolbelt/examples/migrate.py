@@ -679,7 +679,11 @@ def import_visualizations(orig_client, dest_client):
             "options": orig_default_table["options"],
         }
 
-        print("Query {} - OK - Updating default table visualization settings".format(dest_query_id))
+        print(
+            "Query {} - OK - Updating default table visualization settings".format(
+                dest_query_id
+            )
+        )
         user_client.update_visualization(
             dest_default_table["id"], default_table_viz_data
         )
