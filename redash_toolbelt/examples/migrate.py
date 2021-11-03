@@ -1,12 +1,11 @@
 """
 Author: Jesse Whitehouse
-Last updated: 21 October 2021
 Notes:
   Copied from https://gist.github.com/arikfr/2c7d09f6837b256c58a3d3ef6a97f61a
 """
 
 
-import sys, os, json, logging, textwrap, re
+import sys, os, json, logging, textwrap, re, traceback
 import click
 from redash_toolbelt import Redash
 
@@ -1231,6 +1230,7 @@ def save_meta_wrapper(func):
             func(*args, **kwargs)
         except Exception as e:
             print(e)
+            traceback.print_exc()
         finally:
             save_meta()
 
