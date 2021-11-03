@@ -1,6 +1,5 @@
 """
 Author: Jesse Whitehouse
-Last updated: 3 November 2021
 Notes:
   Copied from https://gist.github.com/arikfr/2c7d09f6837b256c58a3d3ef6a97f61a
 """
