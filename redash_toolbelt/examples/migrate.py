@@ -671,6 +671,9 @@ def import_visualizations(orig_client, dest_client):
             [i for i in query["visualizations"] if i["type"] == "TABLE"],
             key=lambda x: x["id"],
         )
+        if len(orig_table_visualizations) == 0:
+            print("WARNING - Could not find the original table visualization")
+            continue
         orig_default_table = orig_table_visualizations[0]
 
         # Build a user client so write operations preserve the original created by...
