@@ -80,8 +80,10 @@ class Redash(object):
 
         return self._post("api/data_sources", json=payload)
 
-    def dashboard(self, slug):
+    def dashboard(self, slug, legacy=False):
         """GET api/dashboards/{slug}"""
+        if legacy:
+            return self._get("api/dashboards/{}?legacy=1".format(slug)).json()
         return self._get("api/dashboards/{}".format(slug)).json()
 
     def create_query(self, query_json):
