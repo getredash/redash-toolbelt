@@ -398,7 +398,11 @@ def import_queries(orig_client, dest_client):
 
                 if origin_updated_at > dest_updated_at:
                     should_update_query = True
-                    print("Query {} - Re-importing - Destination is out-to-date.".format(origin_id))
+                    print(
+                        "Query {} - Re-importing - Destination is out-to-date.".format(
+                            origin_id
+                        )
+                    )
                 else:
                     print("Query {} - SKIP - was already imported".format(origin_id))
                     return
@@ -577,7 +581,9 @@ def import_dashboards(orig_client, dest_client):
                 should_update_query = True
                 print("Dashboard `{}` - Re-importing origin".format(dashboard_slug))
             else:
-                print("Dashboard `{}` - SKIP - Already imported".format(dashboard["slug"]))
+                print(
+                    "Dashboard `{}` - SKIP - Already imported".format(dashboard["slug"])
+                )
                 continue
 
         print("   importing: {}".format(dashboard["slug"]))
