@@ -398,7 +398,7 @@ def import_queries(orig_client, dest_client):
 
                 if origin_updated_at > dest_updated_at:
                     should_update_query = True
-                    print("Origin: %s > Desct: %s" % (query["id"], destination_id))
+                    print("Query {} - Re-importing - Destination is out-to-date.".format(origin_id))
                 else:
                     print("Query {} - SKIP - was already imported".format(origin_id))
                     return
@@ -569,14 +569,13 @@ def import_dashboards(orig_client, dest_client):
     for dashboard in dashboards:
         should_update_query = False
         if dashboard["slug"] in meta["dashboards"]:
-            # print(json.dumps(dashboard, indent=2))
             dashboard_slug = meta["dashboards"][dashboard["slug"]]
             dest_dashboard = dest_client.dashboard(dashboard_slug, True)
             origin_updated_at = parser.parse(dashboard["updated_at"])
             dest_updated_at = parser.parse(dest_dashboard["updated_at"])
             if origin_updated_at > dest_updated_at:
                 should_update_query = True
-                print("Updating: %s" % dashboard_slug)
+                print("Dashboard `{}` - Re-importing origin".format(dashboard_slug))
             else:
                 print("Dashboard `{}` - SKIP - Already imported".format(dashboard["slug"]))
                 continue
