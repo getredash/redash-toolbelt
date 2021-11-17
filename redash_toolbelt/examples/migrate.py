@@ -1288,7 +1288,7 @@ def make_global_meta():
 @click.argument(
     "command",
 )
-@click.version_option(version="1.0")
+@click.version_option(version="0.1.9")
 def main(command):
     """Redash migration tool. Can be used to migrate objects (users, queries, visualizations, dashboards, alerts, and favorites)
     from one Redash instance to another.
