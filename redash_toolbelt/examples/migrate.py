@@ -947,7 +947,6 @@ def fix_csv_queries(orig_client, dest_client):
     else:
         pass
 
-
     # Fetch csvurl data sources
     data_sources = dest_client.get_data_sources()
     csv_sources = [i["id"] for i in data_sources if i["type"] == "csv"]
