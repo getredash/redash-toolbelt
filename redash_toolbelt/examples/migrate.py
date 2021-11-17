@@ -937,14 +937,16 @@ def import_favorites(orig_client, dest_client):
 
 def fix_csv_queries(orig_client, dest_client):
 
-    if "app.redash.io" not in DESTINATION:
+    if "app.redash.io" not in ORIGIN:
         confirm = input(
             "It doesn't look like you moved from Hosted Redash. Are you certain you want to run this script? [Type 'yes' to proceed]"
         )
+        if confirm != "yes":
+            print("Operation aborted")
+            return
+    else:
+        pass
 
-    if confirm != "yes":
-        print("Operation aborted")
-        return
 
     # Fetch csvurl data sources
     data_sources = dest_client.get_data_sources()
