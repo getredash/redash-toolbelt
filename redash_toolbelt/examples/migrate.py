@@ -476,8 +476,10 @@ def fix_qrds_refs(orig_client, dest_client):
                 query_text = query["query"]
 
             for origin_id in origin_query_ids:
-
-                _origin_id = int(origin_id)
+                try:
+                    _origin_id = int(origin_id)
+                except:
+                    continue
 
                 dest_id = meta["queries"].get(_origin_id)
 
@@ -935,14 +937,15 @@ def import_favorites(orig_client, dest_client):
 
 def fix_csv_queries(orig_client, dest_client):
 
-    if "app.redash.io" not in DESTINATION:
+    if "app.redash.io" not in ORIGIN:
         confirm = input(
             "It doesn't look like you moved from Hosted Redash. Are you certain you want to run this script? [Type 'yes' to proceed]"
         )
-
-    if confirm != "yes":
-        print("Operation aborted")
-        return
+        if confirm != "yes":
+            print("Operation aborted")
+            return
+    else:
+        pass
 
     # Fetch csvurl data sources
     data_sources = dest_client.get_data_sources()
@@ -1285,7 +1288,7 @@ def make_global_meta():
 @click.argument(
     "command",
 )
-@click.version_option(version="1.0")
+@click.version_option(version="0.1.9")
 def main(command):
     """Redash migration tool. Can be used to migrate objects (users, queries, visualizations, dashboards, alerts, and favorites)
     from one Redash instance to another.

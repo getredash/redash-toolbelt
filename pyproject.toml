@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "redash_toolbelt"
-version = "0.1.8"
+version = "0.1.9"
 description = "Redash API client and tools to manage your instance."
 authors = ["Redash Maintainers"]
 license = "BSD-2-Clause"
@@ -15,7 +15,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.6"
 requests = "^2.22.0"
-click = "^7.0"
+click = "^8.0.3"
+
 
 [tool.poetry.dev-dependencies]
 
