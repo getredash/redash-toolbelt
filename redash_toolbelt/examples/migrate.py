@@ -476,8 +476,10 @@ def fix_qrds_refs(orig_client, dest_client):
                 query_text = query["query"]
 
             for origin_id in origin_query_ids:
-
-                _origin_id = int(origin_id)
+                try:
+                    _origin_id = int(origin_id)
+                except:
+                    continue
 
                 dest_id = meta["queries"].get(_origin_id)
 
