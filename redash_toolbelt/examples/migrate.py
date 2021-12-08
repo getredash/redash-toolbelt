@@ -1157,17 +1157,8 @@ def init():
     It's important to provide the correct information here to ensure that all objects are copied
     correctly from the ORIGIN instance to the DESTINATION instance.
 
-    Further important notes:
-
-      * This script will ask for an email address from you.  It's only used for login purposes,
-        and NO EMAILS WILL BE SENT.
-
-      * Please ensure you have turned OFF the rate limiting in your DESTINATION Redash,
-        otherwise the migration can experience problems.  eg not being able to create users,
-        groups, (and other things) in the destination Redash.
-
-        You can disable rate limiting by adding `REDASH_RATELIMIT_ENABLED=false` to your
-        DESTINATION Redash environment (env) file.
+    Before proceeding, you should disable the rate limits on your DESTINATION instance. Do this
+    by setting the `REDASH_RATE_LIMIT_ENABLED` environment variable to `false`.
     """
     )
 
@@ -1204,7 +1195,7 @@ def init():
         )
     )
     destination_admin_email_address = input(
-        "Please enter the email address for the destination admin user: "
+        "Please enter the email address for the destination admin user (no emails will be sent): "
     )
 
     meta["settings"]["destination_url"] = destination_url
