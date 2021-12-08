@@ -1158,7 +1158,8 @@ def init():
     correctly from the ORIGIN instance to the DESTINATION instance.
 
     Before proceeding, you should disable the rate limits on your DESTINATION instance. Do this
-    by setting the `REDASH_RATE_LIMIT_ENABLED` environment variable to `false`.
+    by setting the `REDASH_RATE_LIMIT_ENABLED` environment variable to `false`. After migration
+    you should re-enable the rate limits by setting this variable to `true`.
     """
     )
 
