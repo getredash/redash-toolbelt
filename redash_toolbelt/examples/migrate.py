@@ -1160,7 +1160,9 @@ def init():
     It's important to provide the correct information here to ensure that all objects are copied
     correctly from the ORIGIN instance to the DESTINATION instance.
 
-    Please note that this script will solicit an email address from you. But NO EMAILS WILL BE SENT.
+    Before proceeding, you should disable the rate limits on your DESTINATION instance. Do this
+    by setting the `REDASH_RATE_LIMIT_ENABLED` environment variable to `false`. After migration
+    you should re-enable the rate limits by setting this variable to `true`.
     """
     )
 
@@ -1197,7 +1199,7 @@ def init():
         )
     )
     destination_admin_email_address = input(
-        "Please enter the email address for the destination admin user: "
+        "Please enter the email address for the destination admin user (no emails will be sent): "
     )
 
     meta["settings"]["destination_url"] = destination_url
