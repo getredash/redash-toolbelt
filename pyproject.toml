@@ -14,6 +14,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.6"
+python-dateutil = "2.8.1"
 requests = "^2.22.0"
 click = "^8.0.3"
 

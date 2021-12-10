@@ -8,6 +8,7 @@ Notes:
 import sys, os, json, logging, textwrap, re, traceback
 import click
 from redash_toolbelt import Redash
+from dateutil import parser
 
 logging.basicConfig(stream=sys.stdout, level=logging.ERROR)
 logging.getLogger("requests").setLevel("ERROR")
@@ -544,9 +545,19 @@ def import_queries(orig_client, dest_client):
 
             data_source_id = DATA_SOURCES.get(query["data_source_id"])
 
+            should_update_query = False
             if origin_id in meta["queries"] or str(origin_id) in meta["queries"]:
-                print("Query {} - SKIP - was already imported".format(origin_id))
-                return
+                destination_id = meta["queries"][query["id"]]
+                dest_query = dest_client.get_query(destination_id)
+                origin_updated_at = parser.parse(query["updated_at"])
+                dest_updated_at = parser.parse(dest_query["updated_at"])
+
+                if origin_updated_at > dest_updated_at:
+                    should_update_query = True
+                    print("Query {} - Re-importing - Destination is out-to-date.".format(origin_id))
+                else:
+                    print("Query {} - SKIP - was already imported".format(origin_id))
+                    return
 
             if data_source_id is None:
                 print(
@@ -580,7 +591,11 @@ def import_queries(orig_client, dest_client):
             user_client = Redash(DESTINATION, user_api_key)
 
             try:
-                response = user_client.create_query(data)
+                if should_update_query:
+                    print("Updating query %s - %s OK" % (origin_id, destination_id))
+                    response = user_client.update_query(destination_id, data)
+                else:
+                    response = user_client.create_query(data)
             except Exception as e:
                 print(
                     "Query {} - FAIL - Query creation at destination failed: {}".format(
@@ -743,9 +758,18 @@ def import_dashboards(orig_client, dest_client):
     dashboards = sorted(dashboards, key=lambda x: x.get("created_at", 0))
 
     for dashboard in dashboards:
+        should_update_query = False
         if dashboard["slug"] in meta["dashboards"]:
-            print("Dashboard `{}` - SKIP - Already imported".format(dashboard["slug"]))
-            continue
+            dashboard_slug = meta["dashboards"][dashboard["slug"]]
+            dest_dashboard = dest_client.dashboard(dashboard_slug, True)
+            origin_updated_at = parser.parse(dashboard["updated_at"])
+            dest_updated_at = parser.parse(dest_dashboard["updated_at"])
+            if origin_updated_at > dest_updated_at:
+                should_update_query = True
+                print("Dashboard `{}` - Re-importing origin".format(dashboard_slug))
+            else:
+                print("Dashboard `{}` - SKIP - Already imported".format(dashboard["slug"]))
+                continue
 
         print("   importing: {}".format(dashboard["slug"]))
 
@@ -764,7 +788,10 @@ def import_dashboards(orig_client, dest_client):
 
         user_client = Redash(DESTINATION, user_api_key)
 
-        new_dashboard = user_client.create_dashboard(d["name"])
+        if should_update_query:
+            new_dashboard = dest_dashboard
+        else:
+            new_dashboard = user_client.create_dashboard(d["name"])
 
         new_dash_id = new_dashboard["id"]
 
