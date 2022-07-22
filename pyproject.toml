@@ -26,6 +26,7 @@ find-tables = "redash_toolbelt.examples.find_table_names:main"
 clone-dashboard-and-queries = "redash_toolbelt.examples.clone_dashboard_and_queries:main"
 export-queries = "redash_toolbelt.examples.query_export:main"
 redash-migrate = "redash_toolbelt.examples.migrate:main"
+delete-queries = "redash_toolbelt.examples.delete_queries:main"
 
 [build-system]
 requires = ["poetry>=0.12"]
