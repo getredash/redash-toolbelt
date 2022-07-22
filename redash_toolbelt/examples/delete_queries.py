@@ -2,10 +2,11 @@ import click
 import requests
 from redash_toolbelt.client import Redash
 
-template = u"""/*
+template = """/*
 API KEY: {name}
 */
 {query}"""
+
 
 @click.command()
 @click.argument("redash_url")
@@ -19,11 +20,11 @@ API KEY: {name}
     prompt="API Key",
     help="User API Key",
 )
-
 def main(redash_url, api_key, query_id):
     redash = Redash(redash_url, api_key)
-    path = f'api/queries/{query_id}'
+    path = f"api/queries/{query_id}"
     redash._delete(path)
+
 
 if __name__ == "__main__":
     main()
