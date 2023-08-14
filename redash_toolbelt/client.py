@@ -80,9 +80,9 @@ class Redash(object):
 
         return self._post("api/data_sources", json=payload)
 
-    def dashboard(self, slug):
+    def dashboard(self, id):
         """GET api/dashboards/{slug}"""
-        return self._get("api/dashboards/{}".format(slug)).json()
+        return self._get("api/dashboards/{}".format(id)).json()
 
     def create_query(self, query_json):
         return self._post("api/queries", json=query_json)
@@ -105,8 +105,8 @@ class Redash(object):
         }
         return self._post("api/widgets", json=data)
 
-    def duplicate_dashboard(self, slug, new_name=None):
-        current_dashboard = self.dashboard(slug)
+    def duplicate_dashboard(self, id, new_name=None):
+        current_dashboard = self.dashboard(id)
 
         if new_name is None:
             new_name = "Copy of: {}".format(current_dashboard["name"])
