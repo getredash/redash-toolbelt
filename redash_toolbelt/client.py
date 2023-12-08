@@ -105,6 +105,10 @@ class Redash(object):
         }
         return self._post("api/widgets", json=data)
 
+    def update_widget(self, widget_id, data):
+        """POST /api/widgets/{widget_id} with the provided data object."""
+        return self._post("api/widgets/{}".format(widget_id), json=data)
+
     def duplicate_dashboard(self, slug, new_name=None):
         current_dashboard = self.dashboard(slug)
 
