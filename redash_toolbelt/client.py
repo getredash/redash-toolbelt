@@ -132,7 +132,6 @@ class Redash(object):
         return new_dashboard
 
     def duplicate_query(self, query_id, new_name=None):
-
         response = self._post(f"api/queries/{query_id}/fork")
         new_query = response.json()
 
@@ -178,7 +177,6 @@ class Redash(object):
         return self._post(f"api/alerts", json=payload).json()
 
     def update_alert(self, id, name=None, options=None, query_id=None, rearm=None):
-
         payload = dict(name=name, options=options, query_id=query_id, rearm=rearm)
 
         no_none = {key: val for key, val in payload.items() if val is not None}
