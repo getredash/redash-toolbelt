@@ -105,6 +105,10 @@ class Redash(object):
         }
         return self._post("api/widgets", json=data)
 
+    def update_widget(self, widget_id, data):
+        """POST /api/widgets/{widget_id} with the provided data object."""
+        return self._post("api/widgets/{}".format(widget_id), json=data)
+
     def duplicate_dashboard(self, slug, new_name=None):
         current_dashboard = self.dashboard(slug)
 
@@ -128,7 +132,6 @@ class Redash(object):
         return new_dashboard
 
     def duplicate_query(self, query_id, new_name=None):
-
         response = self._post(f"api/queries/{query_id}/fork")
         new_query = response.json()
 
@@ -174,7 +177,6 @@ class Redash(object):
         return self._post(f"api/alerts", json=payload).json()
 
     def update_alert(self, id, name=None, options=None, query_id=None, rearm=None):
-
         payload = dict(name=name, options=options, query_id=query_id, rearm=rearm)
 
         no_none = {key: val for key, val in payload.items() if val is not None}
