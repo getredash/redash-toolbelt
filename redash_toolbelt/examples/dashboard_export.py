@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 import argparse
-import requests
-import urllib3
 import json
 from pprint import pprint
+
 from redash_toolbelt.client import Redash
 
-
-urllib3.disable_warnings()
+template = """/*
+Name: {name}
+Data source: {data_source}
+Created By: {created_by}
+Last Updated At: {last_updated_at}
+*/
+{query}"""
 
 
 def build_opts(opt_dict):
@@ -25,14 +29,14 @@ def save_dashboards(redash_h, url, api_key, condense):
         d2 = redash_h.get_dashboard(dash['id'])
         if condense:
             print(filename)
-            condensed = list()
+            condensed = []
             # special widget
             if len(d2['widgets']) == 0:
                 # empty
                 continue
             w = d2['widgets'][0]
             if 'visualization' in w:
-                tdict = dict()
+                tdict = {}
                 for k in ['description', 'name']:
                     if k in w['visualization']:
                         tdict[k] = w['visualization'][k]
@@ -43,11 +47,11 @@ def save_dashboards(redash_h, url, api_key, condense):
                             tdict['schedule'] = w['visualization']['query']['schedule']['interval']
                 condensed.append(tdict)
             for w in d2['widgets'][1:]:
-                tdict = dict()
+                tdict = {}
                 if 'visualization' not in w:
                     continue
                 for k, v in w['visualization'].items():
-                    viz = dict()
+                    viz = {}
                     if k in ['type', 'description', 'name'] and ((isinstance(v,dict) and v != {}) or (isinstance(v,str) and v != "")):
                          viz[k] = v
                             
@@ -62,7 +66,7 @@ def save_dashboards(redash_h, url, api_key, condense):
                                 viz['options'].update(build_opts(v['options']))
                     if viz != {}:
                         if 'visualization' not in tdict:
-                            tdict['visualization'] = dict()
+                            tdict['visualization'] = {}
                         tdict['visualization'].update(viz)
 
                 if tdict != {}:
